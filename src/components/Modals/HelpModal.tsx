@@ -1,91 +1,96 @@
 import { Modal } from './Modal';
 
-interface HelpModalProps { open: boolean; onClose: () => void; }
+interface HelpModalProps { onClose: () => void; }
 
-export function HelpModal({ open, onClose }: HelpModalProps) {
+export function HelpModal({ onClose }: HelpModalProps) {
   return (
-    <Modal open={open} onClose={onClose} title="📘 Pomoc — PORR Newsletter Generator" size="lg">
-      <div className="space-y-3">
-        <HelpSection icon="🚀" title="Szybki start">
-          <ol className="ml-3 list-decimal space-y-1 text-[11px] text-gray-400 leading-relaxed">
-            <li>Wypełnij pola w <Badge>Treść</Badge></li>
-            <li>Dodaj artykuły w <Badge>Artykuły</Badge></li>
-            <li>Skonfiguruj ankietę w <Badge>Feedback</Badge></li>
-            <li>Dostosuj wygląd w <Badge>Styl</Badge></li>
-            <li>Eksportuj w <Badge>Eksport</Badge></li>
+    <Modal title="📘 Pomoc - Generator Newslettera PORR" onClose={onClose}>
+      <div className="space-y-6 text-sm">
+        <section>
+          <h4 className="text-[#feed01] font-bold mb-2 text-base">🚀 Szybki start</h4>
+          <ol className="list-decimal ml-5 text-gray-300 space-y-1.5">
+            <li>Wypełnij pola w zakładce <strong className="text-white">Treść</strong> – nagłówek, artykuł główny, wideo, stopka</li>
+            <li>Dodaj dodatkowe artykuły w zakładce <strong className="text-white">Artykuły</strong></li>
+            <li>Dostosuj kolory i czcionkę w zakładce <strong className="text-white">Styl</strong></li>
+            <li>Skonfiguruj sekcję opinii w zakładce <strong className="text-white">Feedback</strong></li>
+            <li>Eksportuj gotowy newsletter w zakładce <strong className="text-white">Eksport</strong></li>
           </ol>
-        </HelpSection>
+        </section>
 
-        <HelpSection icon="⌨️" title="Skróty klawiszowe">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-1">
+        <section>
+          <h4 className="text-[#feed01] font-bold mb-2 text-base">⌨️ Skróty klawiszowe</h4>
+          <div className="bg-[#1a1a2e] rounded-lg overflow-hidden">
+            <table className="w-full text-sm">
+              <tbody>
+                {[
+                  ['Ctrl + S', 'Zapisz projekt lokalnie'],
+                  ['Ctrl + E', 'Eksportuj do HTML'],
+                  ['Ctrl + P', 'Podgląd w nowej karcie'],
+                  ['Ctrl + N', 'Nowy projekt'],
+                ].map(([key, desc]) => (
+                  <tr key={key} className="border-b border-[#253555] last:border-0">
+                    <td className="py-2.5 px-3 text-[#feed01] font-mono text-xs">{key}</td>
+                    <td className="py-2.5 px-3 text-gray-400">{desc}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section>
+          <h4 className="text-[#feed01] font-bold mb-2 text-base">📧 Kompatybilność z Outlookiem</h4>
+          <div className="bg-[#1a1a2e] rounded-lg p-4 space-y-3">
+            <div>
+              <p className="text-white font-medium text-xs mb-1">✅ Obsługiwane wersje:</p>
+              <p className="text-gray-400 text-xs">Outlook 2007, 2010, 2013, 2016, 2019, 365 (desktop), Nowy Outlook, Outlook Web</p>
+            </div>
+            <div>
+              <p className="text-white font-medium text-xs mb-1">🔧 Zastosowane techniki:</p>
+              <ul className="text-gray-400 text-xs list-disc ml-4 space-y-0.5">
+                <li>Tabele zamiast div (Outlook nie obsługuje float/flexbox)</li>
+                <li>Inline styles (brak obsługi class w Outlook)</li>
+                <li>VML buttons dla zaokrąglonych rogów</li>
+                <li>MSO conditional comments</li>
+                <li>bgcolor jako atrybut HTML</li>
+                <li>Stałe szerokości (600px)</li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        <section>
+          <h4 className="text-[#feed01] font-bold mb-2 text-base">💾 Zapisywanie</h4>
+          <p className="text-gray-400">
+            Projekt zapisuje się <strong className="text-[#00d9a5]">automatycznie</strong> w localStorage przeglądarki. Możesz też eksportować go jako plik <strong className="text-white">.json</strong> aby udostępnić innym lub archiwizować.
+          </p>
+        </section>
+
+        <section>
+          <h4 className="text-[#feed01] font-bold mb-2 text-base">📤 Metody eksportu</h4>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
             {[
-              ['Ctrl+S', 'Zapisz projekt'],
-              ['Ctrl+E', 'Eksportuj HTML'],
-              ['Ctrl+P', 'Podgląd w nowej karcie'],
-              ['Ctrl+N', 'Nowy projekt'],
-            ].map(([key, desc]) => (
-              <div key={key} className="flex items-center gap-1.5 rounded-lg bg-black/20 p-1.5">
-                <kbd className="rounded bg-white/10 px-1.5 py-0.5 font-mono text-[9px] text-[#feed01]">{key}</kbd>
-                <span className="text-[9px] text-gray-400">{desc}</span>
+              { icon: '📧', title: '.EML', desc: 'Plik e-mail → Otwórz w Outlook → Zapisz jako .OFT' },
+              { icon: '📄', title: '.MHT', desc: 'Archiwum webowe, otwierane w starszych Outlookach' },
+              { icon: '💾', title: '.HTML', desc: 'Uniwersalny plik, do edycji lub hostingu online' },
+              { icon: '📋', title: 'Clipboard', desc: 'Kopiuj HTML do "Moje szablony" lub podpisu' },
+            ].map(m => (
+              <div key={m.title} className="bg-[#1a1a2e] rounded-lg p-3 border border-[#253555]">
+                <div className="flex items-center gap-2 mb-1">
+                  <span>{m.icon}</span>
+                  <span className="text-white font-bold text-xs">{m.title}</span>
+                </div>
+                <p className="text-gray-500 text-[10px]">{m.desc}</p>
               </div>
             ))}
           </div>
-        </HelpSection>
+        </section>
 
-        <HelpSection icon="📧" title="Kompatybilność z Outlookiem">
-          <ul className="ml-3 list-disc space-y-0.5 text-[11px] text-gray-400">
-            <li>Layout oparty wyłącznie na <strong className="text-[#feed01]">&lt;table&gt;</strong></li>
-            <li>Inline styles (bez shorthand CSS)</li>
-            <li>VML buttons dla zaokrąglonych przycisków</li>
-            <li>MSO conditional comments</li>
-            <li>Obrazki z width, height, border="0", display:block</li>
-            <li>DOCTYPE XHTML 1.0 Transitional</li>
-            <li>Namespace VML: xmlns:v, xmlns:o</li>
-          </ul>
-        </HelpSection>
-
-        <HelpSection icon="📤" title="Eksport do Outlooka">
-          <div className="space-y-1.5">
-            <div className="rounded-lg bg-blue-500/5 border border-blue-500/10 p-2">
-              <p className="text-[10px] text-blue-400 font-semibold mb-0.5">Klasyczny Outlook (Desktop)</p>
-              <p className="text-[9px] text-gray-400">Pobierz .EML → Otwórz w Outlook → Plik → Zapisz jako → Szablon Outlooka (.oft)</p>
-            </div>
-            <div className="rounded-lg bg-cyan-500/5 border border-cyan-500/10 p-2">
-              <p className="text-[10px] text-cyan-400 font-semibold mb-0.5">Nowy Outlook (Win11/Web)</p>
-              <p className="text-[9px] text-gray-400">Skopiuj HTML → Nowa wiadomość → ⋯ → Moje szablony → + Szablon → Wklej</p>
-            </div>
-          </div>
-        </HelpSection>
-
-        <HelpSection icon="💾" title="Zapisywanie">
-          <p className="text-[11px] text-gray-400">
-            Projekt zapisuje się <strong className="text-emerald-400">automatycznie</strong> do localStorage.
-            Eksportuj jako .json, aby udostępnić lub archiwizować.
-          </p>
-        </HelpSection>
-
-        <div className="rounded-xl border border-white/5 bg-white/[0.02] p-2.5 text-center">
-          <p className="text-[11px] text-gray-400">
-            Kontakt: <strong className="text-[#feed01]">komunikacja@porr.pl</strong>
-          </p>
-        </div>
+        <section>
+          <h4 className="text-[#feed01] font-bold mb-2 text-base">❓ Wsparcie</h4>
+          <p className="text-gray-400">Problemy lub sugestie? Napisz na: <strong className="text-white">komunikacja@porr.pl</strong></p>
+        </section>
       </div>
     </Modal>
   );
-}
-
-function HelpSection({ icon, title, children }: { icon: string; title: string; children: React.ReactNode }) {
-  return (
-    <section className="rounded-xl border border-white/5 bg-white/[0.015] p-2.5">
-      <h4 className="mb-1.5 flex items-center gap-1.5 text-[11px] font-bold text-white">
-        <span className="flex h-5 w-5 items-center justify-center rounded-md bg-[#feed01]/10 text-[10px]">{icon}</span>
-        {title}
-      </h4>
-      {children}
-    </section>
-  );
-}
-
-function Badge({ children }: { children: React.ReactNode }) {
-  return <span className="rounded bg-[#feed01]/15 px-1 py-0.5 text-[10px] font-semibold text-[#feed01]">{children}</span>;
 }

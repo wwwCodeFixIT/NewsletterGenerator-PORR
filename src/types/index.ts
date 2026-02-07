@@ -16,21 +16,25 @@ export interface FeedbackOption {
 export type FeedbackStyle = 'emoji' | 'stars' | 'thumbs';
 
 export interface NewsletterState {
+  // Header
   issueNumber: string;
   preheader: string;
   logoUrl: string;
 
+  // Main article
   mainTitle: string;
   mainDescription: string;
   mainImage: string;
   mainLink: string;
 
+  // Video
   videoThumbnail: string;
   videoLink: string;
   videoTitle: string;
   videoDescription: string;
   videoReadMore: string;
 
+  // Footer
   footerTitle: string;
   footerLeft: string;
   footerRight: string;
@@ -39,6 +43,7 @@ export interface NewsletterState {
   linkedinUrl: string;
   youtubeUrl: string;
 
+  // Style
   primaryColor: string;
   accentColor: string;
   buttonTextColor: string;
@@ -46,11 +51,13 @@ export interface NewsletterState {
   bgColor: string;
   fontFamily: string;
 
+  // Toggles
   showVideo: boolean;
   showSocial: boolean;
   showViewOnline: boolean;
   showFeedback: boolean;
 
+  // Feedback
   feedbackTitle: string;
   feedbackSubtitle: string;
   feedbackBgColor: string;
@@ -58,19 +65,20 @@ export interface NewsletterState {
   feedbackSurveyText: string;
   feedbackStyle: FeedbackStyle;
   feedbackOptions: FeedbackOption[];
-  nextFeedbackId: number;
 
+  // Articles
   articles: Article[];
-  currentArticleId: number | null;
-  nextArticleId: number;
 
-  projectName: string;
+  // Internal
+  currentArticleId: number | null;
+  nextId: number;
+  nextFeedbackId: number;
 }
 
-export interface RecentProject {
+export interface ProjectData {
   name: string;
   date: string;
-  data: NewsletterState;
+  state: NewsletterState;
 }
 
 export type NotificationType = 'success' | 'warning' | 'info' | 'error';
@@ -85,8 +93,10 @@ export type TabId = 'content' | 'articles' | 'feedback' | 'style' | 'export';
 
 export type DeviceType = 'mobile-sm' | 'mobile-lg' | 'tablet' | 'desktop';
 
-export interface DeviceInfo {
+export interface DeviceConfig {
   width: number;
   type: 'mobile' | 'tablet' | 'desktop';
   label: string;
+  icon: string;
+  size: string;
 }

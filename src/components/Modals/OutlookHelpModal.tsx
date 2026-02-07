@@ -1,90 +1,84 @@
 import { Modal } from './Modal';
 
-interface OutlookHelpModalProps { open: boolean; onClose: () => void; }
+interface OutlookHelpModalProps { onClose: () => void; }
 
-export function OutlookHelpModal({ open, onClose }: OutlookHelpModalProps) {
+export function OutlookHelpModal({ onClose }: OutlookHelpModalProps) {
   return (
-    <Modal open={open} onClose={onClose} title="📘 Instrukcja — Outlook" size="md">
-      <div className="space-y-2.5">
-        {/* Classic */}
-        <StepSection number={1} title="Klasyczny Outlook — szablon .OFT" badge="Desktop" badgeColor="bg-blue-500/15 text-blue-400"
-          steps={[
-            'W Generatorze kliknij "Pobierz .EML"',
-            'Otwórz pobrany plik w Outlooku',
-            'Plik → Zapisz jako → Szablon Outlooka (.oft)',
-            'Gotowe! Używaj szablonu do wysyłki',
-          ]} />
-
-        <StepSection number={2} title='Nowy Outlook — "Moje szablony"' badge="Zalecana" badgeColor="bg-emerald-500/15 text-emerald-400"
-          steps={[
-            'Kliknij "Kopiuj dla Moje szablony"',
-            'Otwórz Outlook → Nowa wiadomość',
-            'Kliknij ⋯ (Więcej opcji) → Moje szablony',
-            'Kliknij + Szablon → Nadaj nazwę',
-            'Wklej skopiowany HTML (Ctrl+V) → Zapisz',
-          ]} />
-
-        <StepSection number={3} title="Nowy Outlook — Podpis email" badge="Alternatywa" badgeColor="bg-purple-500/15 text-purple-400"
-          steps={[
-            'Kliknij "Kopiuj jako podpis"',
-            'Ustawienia → Poczta → Podpisy',
-            'Kliknij "Nowy podpis" → Wklej HTML',
-            'Przy tworzeniu nowego maila wybierz ten podpis',
-          ]} />
-
-        <StepSection number={4} title="Wersja robocza (X-Unsent)" badge="Zaawans." badgeColor="bg-amber-500/15 text-amber-400"
-          steps={[
-            'Kliknij "Wersja robocza (X-Unsent)"',
-            'Otwórz pobrany plik w Outlooku',
-            'Mail otworzy się jako nowa wiadomość do edycji',
-            'Dodaj odbiorców i wyślij',
-          ]} />
-
-        <div className="rounded-xl border border-emerald-500/15 bg-emerald-500/5 p-2.5">
-          <div className="flex items-start gap-2">
-            <span className="text-sm shrink-0">💡</span>
-            <div>
-              <strong className="block text-[10px] text-emerald-400 mb-0.5">Powrót do klasycznego Outlooka</strong>
-              <p className="text-[9px] text-gray-400 leading-relaxed">
-                Ustawienia → Ogólne → Wyłącz przełącznik "Nowy Outlook".<br/>
-                Klasyczny Outlook obsługuje pliki .OFT i daje więcej kontroli.
-              </p>
-            </div>
+    <Modal title="📘 Instrukcja - Outlook" onClose={onClose}>
+      <div className="space-y-6 text-sm">
+        {/* Classic Outlook */}
+        <section>
+          <div className="flex items-center gap-2 mb-3">
+            <span className="text-[10px] bg-[#0078d4] text-white px-2 py-0.5 rounded-full font-bold">Outlook Desktop 2007-2019</span>
           </div>
-        </div>
+          <h4 className="text-[#feed01] font-bold mb-2">Metoda 1: Przez .EML → .OFT (zalecana)</h4>
+          <ol className="list-decimal ml-5 text-gray-300 space-y-2">
+            <li>W zakładce Eksport kliknij <strong className="text-white">📧 Pobierz .EML</strong></li>
+            <li>Znajdź pobrany plik <code className="bg-[#1a1a2e] px-1 rounded text-[#00d9a5]">newsletter.eml</code> i kliknij dwukrotnie</li>
+            <li>Outlook otworzy wiadomość – sprawdź podgląd</li>
+            <li>Kliknij <strong className="text-white">Plik → Zapisz jako</strong></li>
+            <li>Zmień typ na <strong className="text-[#feed01]">Szablon programu Outlook (.oft)</strong></li>
+            <li>Zapisz w wybranej lokalizacji</li>
+          </ol>
+          <div className="bg-[#1a1a2e] border-l-[3px] border-[#0078d4] p-3 rounded-r-lg mt-3">
+            <p className="text-[#0078d4] text-[11px] font-bold mb-1">💡 Jak używać szablonu .OFT:</p>
+            <p className="text-gray-400 text-[11px]">Plik → Nowy → Więcej elementów → Wybierz formularz → Szablony użytkownika</p>
+          </div>
+        </section>
 
-        <div className="rounded-xl border border-white/5 bg-white/[0.02] p-2.5">
-          <h4 className="text-[10px] font-bold text-white mb-1">🔧 Rozwiązywanie problemów</h4>
-          <ul className="ml-3 list-disc space-y-0.5 text-[9px] text-gray-400">
-            <li>Obrazki się nie ładują? Użyj URL zamiast Base64</li>
-            <li>Layout rozjechany? Generator tworzy tabele, nie div-y</li>
-            <li>Nie można zapisać .OFT? Użyj klasycznego Outlooka</li>
-            <li>Przyciski kwadratowe? VML je zaokrągli w Outlooku</li>
-          </ul>
-        </div>
+        <div className="h-px bg-[#253555]" />
+
+        {/* New Outlook */}
+        <section>
+          <div className="flex items-center gap-2 mb-3">
+            <span className="text-[10px] bg-gradient-to-r from-[#0078d4] to-[#00bcf2] text-white px-2 py-0.5 rounded-full font-bold">Nowy Outlook / Web</span>
+          </div>
+
+          <h4 className="text-[#feed01] font-bold mb-2">Opcja 1: Moje szablony (zalecana)</h4>
+          <ol className="list-decimal ml-5 text-gray-300 space-y-1.5">
+            <li>Kliknij <strong className="text-white">📋 Kopiuj dla "Moje szablony"</strong></li>
+            <li>W Outlook kliknij <strong className="text-white">Nowa wiadomość</strong></li>
+            <li>Na pasku narzędzi kliknij <strong className="text-white">⋯ (więcej)</strong> → <strong className="text-[#feed01]">Moje szablony</strong></li>
+            <li>Kliknij <strong className="text-white">+ Szablon</strong></li>
+            <li>Nadaj nazwę i wklej kod <strong className="text-white">(Ctrl+V)</strong></li>
+            <li>Zapisz – szablon jest gotowy do wielokrotnego użytku!</li>
+          </ol>
+
+          <div className="h-px bg-[#253555] my-4" />
+
+          <h4 className="text-[#feed01] font-bold mb-2">Opcja 2: Podpis HTML</h4>
+          <ol className="list-decimal ml-5 text-gray-300 space-y-1.5">
+            <li>Kliknij <strong className="text-white">✍️ Kopiuj jako podpis</strong></li>
+            <li>Otwórz <strong className="text-white">Ustawienia → Poczta → Podpisy</strong></li>
+            <li>Kliknij <strong className="text-white">+ Nowy podpis</strong></li>
+            <li>Przełącz na edycję HTML i wklej kod</li>
+            <li>Przy tworzeniu maila wybierz ten podpis</li>
+          </ol>
+        </section>
+
+        <div className="h-px bg-[#253555]" />
+
+        <section>
+          <div className="bg-[#1a1a2e] border-l-[3px] border-[#00d9a5] p-4 rounded-r-lg">
+            <p className="text-[#00d9a5] font-bold text-xs mb-1">💡 Wskazówka: Powrót do klasycznego Outlooka</p>
+            <p className="text-gray-400 text-[11px]">
+              Jeśli potrzebujesz pełnej obsługi .OFT: <strong className="text-white">Ustawienia → Ogólne → Wyłącz "Nowy Outlook"</strong>
+            </p>
+          </div>
+        </section>
+
+        <section>
+          <div className="bg-[#1a1a2e] border-l-[3px] border-yellow-500 p-4 rounded-r-lg">
+            <p className="text-yellow-400 font-bold text-xs mb-1">⚠️ Ważne dla Outlook Desktop</p>
+            <ul className="text-gray-400 text-[11px] list-disc ml-4 space-y-1">
+              <li>Outlook renderuje HTML używając silnika Word – nie wszystkie style CSS działają</li>
+              <li>Generator automatycznie stosuje kompatybilne rozwiązania (tabele, VML, inline styles)</li>
+              <li>Obrazki zewnętrzne mogą wymagać odblokowania przez odbiorcę</li>
+              <li>Testuj zawsze na docelowej wersji Outlooka przed wysyłką</li>
+            </ul>
+          </div>
+        </section>
       </div>
     </Modal>
-  );
-}
-
-function StepSection({ number, title, steps, badge, badgeColor }: {
-  number: number; title: string; steps: string[]; badge?: string; badgeColor?: string;
-}) {
-  return (
-    <div className="rounded-xl border border-white/5 bg-white/[0.015] p-2.5">
-      <div className="mb-1.5 flex items-center gap-1.5 flex-wrap">
-        <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-md bg-[#feed01]/15 text-[9px] font-bold text-[#feed01]">{number}</span>
-        <h4 className="text-[10px] font-bold text-white">{title}</h4>
-        {badge && <span className={`rounded-full ${badgeColor} px-1.5 py-0.5 text-[7px] font-bold`}>{badge}</span>}
-      </div>
-      <ol className="space-y-0.5">
-        {steps.map((step, i) => (
-          <li key={i} className="flex items-start gap-1.5 text-[10px] text-gray-400">
-            <span className="flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded-full bg-white/5 text-[7px] font-bold text-gray-500 mt-0.5">{i + 1}</span>
-            <span className="leading-relaxed">{step}</span>
-          </li>
-        ))}
-      </ol>
-    </div>
   );
 }

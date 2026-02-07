@@ -3,7 +3,7 @@ import type { Notification, NotificationType } from '@/types';
 
 export function useNotification() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
-  const nextId = useRef(1);
+  const nextId = useRef(0);
 
   const show = useCallback((message: string, type: NotificationType = 'success') => {
     const id = nextId.current++;
