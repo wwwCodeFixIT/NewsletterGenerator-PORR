@@ -25,11 +25,6 @@ const tabs: { id: TabId; label: string; icon: string; mobileLabel: string }[] = 
   { id: 'export', label: 'Eksport', icon: '📤', mobileLabel: 'Exp.' },
 ];
 
-export default function App() {
-  return <h1>TEST DZIAŁA</h1>
-}
-
-
 export function App() {
   const {
     state, update, saveStatus,
