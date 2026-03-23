@@ -492,65 +492,78 @@ function ExportTab(props: {
 
   return (
     <>
-      {/* Classic Outlook */}
-      <div className="border-2 border-[#0078d4] rounded-lg p-3 mb-2 bg-[#0078d4]/5">
-        <h4 className="text-white text-[11px] font-bold mb-2 flex items-center gap-2">
-          🖥️ Klasyczny Outlook
-          <span className="text-[8px] bg-[#0078d4] text-white px-1.5 py-0.5 rounded-full font-normal">2007-2019</span>
-        </h4>
-        <div className="bg-[#1a1a2e] border-l-[3px] border-[#0078d4] p-2 rounded-r-md mb-2">
-          <p className="text-[#feed01] text-[10px] font-bold mb-1">📋 Jak utworzyć szablon .OFT:</p>
-          <ol className="text-[9px] text-gray-400 list-decimal ml-3 space-y-0.5">
-            <li>Pobierz plik .EML poniżej</li>
-            <li>Otwórz go w Outlook Desktop</li>
-            <li>Plik → Zapisz jako → Szablon Outlook (.oft)</li>
-            <li>Gotowe! Używaj z: Nowy element → Więcej → Formularze</li>
-          </ol>
-        </div>
-        <Btn variant="outlook" onClick={props.onExportEML}>📧 Pobierz .EML</Btn>
-        <Btn variant="outlook" onClick={props.onExportMHT}>📄 Pobierz .MHT</Btn>
-      </div>
+  {/* Classic Outlook */}
+  <div className="border-2 border-[#0078d4] rounded-lg p-3 mb-2 bg-[#0078d4]/5">
+    <h4 className="text-white text-[11px] font-bold mb-2 flex items-center gap-2">
+      🖥️ Klasyczny Outlook
+      <span className="text-[8px] bg-[#0078d4] text-white px-1.5 py-0.5 rounded-full font-normal">2007-2019</span>
+    </h4>
 
-      {/* New Outlook */}
-      <div className="border-2 border-[#00bcf2] rounded-lg p-3 mb-2 bg-[#00bcf2]/5">
-        <h4 className="text-white text-[11px] font-bold mb-2 flex items-center gap-2">
-          ✨ Nowy Outlook
-          <span className="text-[8px] bg-gradient-to-r from-[#0078d4] to-[#00bcf2] text-white px-1.5 py-0.5 rounded-full font-normal">Win 11 / Web</span>
-        </h4>
-        <div className="bg-[#1a1a2e] border-l-[3px] border-yellow-500 p-2 rounded-r-md mb-2">
-          <p className="text-yellow-400 text-[10px] font-bold">⚠️ Nowy Outlook nie obsługuje .OFT</p>
-          <p className="text-[9px] text-gray-500 mt-0.5">Użyj "Moje szablony" lub podpisu HTML</p>
-        </div>
-        <Btn variant="outlook-new" onClick={props.onCopyForNewOutlook}>📋 Kopiuj dla "Moje szablony"</Btn>
-        <Btn variant="outlook-new" onClick={props.onCopyAsSignature}>✍️ Kopiuj jako podpis</Btn>
-        <Btn variant="secondary" onClick={props.onShowOutlookHelp}>❓ Instrukcja krok po kroku</Btn>
-      </div>
+    <div className="bg-[#1a1a2e] border-l-[3px] border-[#0078d4] p-2 rounded-r-md mb-2">
+      <p className="text-[#feed01] text-[10px] font-bold mb-1">📋 Jak użyć w klasycznym Outlooku:</p>
+      <ol className="text-[9px] text-gray-400 list-decimal ml-3 space-y-0.5">
+        <li>Pobierz plik .EML poniżej</li>
+        <li>Otwórz go w Outlook Desktop</li>
+        <li>Możesz wysłać go od razu lub zapisać jako Szablon Outlook (.oft)</li>
+        <li>Dla stałego szablonu: Plik → Zapisz jako → Szablon Outlook (.oft)</li>
+      </ol>
+    </div>
 
-      {/* Universal exports */}
-      <Section title="💻 UNIWERSALNE">
-        <Btn variant="success" onClick={props.onExportHTML}>💾 Pobierz plik HTML</Btn>
-        <Btn variant="secondary" onClick={props.onCopyHTML}>📋 Kopiuj kod HTML</Btn>
-        <Btn variant="secondary" onClick={props.onShowCode}>👁️ Podgląd kodu źródłowego</Btn>
-        <Btn variant="secondary" onClick={props.onOpenInNewTab}>🔗 Otwórz w nowej karcie</Btn>
-      </Section>
+    <Btn variant="outlook" onClick={props.onExportEML}>📧 Pobierz .EML</Btn>
+    <Btn variant="outlook" onClick={props.onExportMHT}>📄 Pobierz .MHT</Btn>
+  </div>
 
-      {/* Project management */}
-      <Section title="💾 ZARZĄDZANIE PROJEKTEM">
-        <Btn variant="secondary" onClick={props.onSaveProjectToFile}>📦 Eksportuj projekt (.json)</Btn>
-        <Btn variant="secondary" onClick={() => importRef.current?.click()}>📂 Importuj projekt</Btn>
-        <input
-          ref={importRef}
-          type="file"
-          accept=".json"
-          className="hidden"
-          onChange={e => { const f = e.target.files?.[0]; if (f) props.onLoadProjectFromFile(f); e.target.value = ''; }}
-        />
-        <div className="bg-[#1a1a2e] border-l-[3px] border-[#00d9a5] p-2 rounded-r-md mt-2">
-          <p className="text-[#00d9a5] text-[10px] font-bold mb-0.5">💡 Wskazówka</p>
-          <p className="text-[9px] text-gray-500">Pliki .json pozwalają udostępniać projekty newsletterów między użytkownikami.</p>
-        </div>
-      </Section>
-    </>
+  {/* New Outlook */}
+  <div className="border-2 border-[#00bcf2] rounded-lg p-3 mb-2 bg-[#00bcf2]/5">
+    <h4 className="text-white text-[11px] font-bold mb-2 flex items-center gap-2">
+      ✨ Nowy Outlook
+      <span className="text-[8px] bg-gradient-to-r from-[#0078d4] to-[#00bcf2] text-white px-1.5 py-0.5 rounded-full font-normal">Win 11 / Web</span>
+    </h4>
+
+    <div className="bg-[#1a1a2e] border-l-[3px] border-yellow-500 p-2 rounded-r-md mb-2">
+      <p className="text-yellow-400 text-[10px] font-bold">ℹ️ Nowy Outlook obsługuje .EML, ale nie .OFT</p>
+      <p className="text-[9px] text-gray-500 mt-0.5">
+        Możesz otwierać/importować .EML albo użyć „Moje szablony” i podpisu HTML.
+      </p>
+    </div>
+
+    <Btn variant="outlook" onClick={props.onExportEML}>📧 Pobierz .EML do nowego Outlooka</Btn>
+    <Btn variant="outlook-new" onClick={props.onCopyForNewOutlook}>📋 Kopiuj dla "Moje szablony"</Btn>
+    <Btn variant="outlook-new" onClick={props.onCopyAsSignature}>✍️ Kopiuj jako podpis</Btn>
+    <Btn variant="secondary" onClick={props.onShowOutlookHelp}>❓ Instrukcja krok po kroku</Btn>
+  </div>
+
+  {/* Universal exports */}
+  <Section title="💻 UNIWERSALNE">
+    <Btn variant="success" onClick={props.onExportHTML}>💾 Pobierz plik HTML</Btn>
+    <Btn variant="secondary" onClick={props.onCopyHTML}>📋 Kopiuj kod HTML</Btn>
+    <Btn variant="secondary" onClick={props.onShowCode}>👁️ Podgląd kodu źródłowego</Btn>
+    <Btn variant="secondary" onClick={props.onOpenInNewTab}>🔗 Otwórz w nowej karcie</Btn>
+  </Section>
+
+  {/* Project management */}
+  <Section title="💾 ZARZĄDZANIE PROJEKTEM">
+    <Btn variant="secondary" onClick={props.onSaveProjectToFile}>📦 Eksportuj projekt (.json)</Btn>
+    <Btn variant="secondary" onClick={() => importRef.current?.click()}>📂 Importuj projekt</Btn>
+    <input
+      ref={importRef}
+      type="file"
+      accept=".json"
+      className="hidden"
+      onChange={e => {
+        const f = e.target.files?.[0];
+        if (f) props.onLoadProjectFromFile(f);
+        e.target.value = '';
+      }}
+    />
+    <div className="bg-[#1a1a2e] border-l-[3px] border-[#00d9a5] p-2 rounded-r-md mt-2">
+      <p className="text-[#00d9a5] text-[10px] font-bold mb-0.5">💡 Wskazówka</p>
+      <p className="text-[9px] text-gray-500">
+        Pliki .json pozwalają udostępniać projekty newsletterów między użytkownikami.
+      </p>
+    </div>
+  </Section>
+</>
   );
 }
 
