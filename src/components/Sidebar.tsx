@@ -509,8 +509,12 @@ function ExportTab(props: {
       </ol>
     </div>
 
-    <Btn variant="outlook" onClick={props.onExportEML}>📧 Pobierz .EML</Btn>
-    <Btn variant="outlook" onClick={props.onExportMHT}>📄 Pobierz .MHT</Btn>
+    <Btn variant="outlook" onClick={props.onExportEMLDraft}>
+  📧 Pobierz .EML draft
+</Btn>
+<Btn variant="outlook" onClick={props.onExportMHT}>
+  📄 Pobierz .MHT
+</Btn>
   </div>
 
   {/* New Outlook */}
