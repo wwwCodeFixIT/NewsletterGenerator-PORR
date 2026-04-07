@@ -48,9 +48,15 @@ export function App() {
 }, [html, notify]);
 
   const handleExportEML = useCallback(() => {
-  const eml = generateEml(html, store.state);
+  const eml = generateEml(html, store.state, { draftMode: false });
   downloadFile(eml, 'newsletter.eml', 'message/rfc822');
-  notify('📧 EML pobrany! Gotowy do otwarcia lub importu w nowym Outlooku.', 'info');
+  notify('📧 EML pobrany! Wersja pod nowy Outlook.', 'info');
+}, [html, store.state, notify]);
+
+  const handleExportEMLDraft = useCallback(() => {
+  const eml = generateEml(html, store.state, { draftMode: true });
+  downloadFile(eml, 'newsletter-draft.eml', 'message/rfc822');
+  notify('📧 EML draft pobrany! Wersja pod klasyczny Outlook.', 'info');
 }, [html, store.state, notify]);
 
   const handleExportMHT = useCallback(() => {
@@ -238,6 +244,7 @@ export function App() {
           onLoadProjectFromFile={handleLoadProjectFromFile}
           onExportHTML={handleExportHTML}
           onExportEML={handleExportEML}
+          onExportEMLDraft={handleExportEMLDraft}
           onExportMHT={handleExportMHT}
           onCopyHTML={handleCopyHTML}
           onCopyForNewOutlook={handleCopyForNewOutlook}
