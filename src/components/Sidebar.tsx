@@ -531,7 +531,9 @@ function ExportTab(props: {
       </p>
     </div>
 
-    <Btn variant="outlook" onClick={props.onExportEML}>📧 Pobierz .EML do nowego Outlooka</Btn>
+    <Btn variant="outlook" onClick={props.onExportEML}>
+  📧 Pobierz .EML do nowego Outlooka
+</Btn>
     <Btn variant="outlook-new" onClick={props.onCopyForNewOutlook}>📋 Kopiuj dla "Moje szablony"</Btn>
     <Btn variant="outlook-new" onClick={props.onCopyAsSignature}>✍️ Kopiuj jako podpis</Btn>
     <Btn variant="secondary" onClick={props.onShowOutlookHelp}>❓ Instrukcja krok po kroku</Btn>
