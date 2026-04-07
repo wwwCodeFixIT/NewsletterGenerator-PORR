@@ -43,37 +43,37 @@ export function App() {
   }, []);
 
   const handleExportHTML = useCallback(() => {
-    downloadFile(html, 'newsletter.html', 'text/html;charset=utf-8', true);
-    notify('✅ HTML pobrany!');
-  }, [html, notify]);
+  downloadFile(html, 'newsletter.html', 'text/html;charset=utf-8', true);
+  notify('✅ HTML pobrany!');
+}, [html, notify]);
 
   const handleExportEML = useCallback(() => {
-    const eml = generateEml(html, store.state);
-    downloadFile(eml, 'newsletter.eml', 'message/rfc822');
-    notify('📧 EML pobrany! Gotowy do otwarcia lub importu w nowym Outlooku.', 'info');
-  }, [html, store.state, notify]);
+  const eml = generateEml(html, store.state);
+  downloadFile(eml, 'newsletter.eml', 'message/rfc822');
+  notify('📧 EML pobrany! Gotowy do otwarcia lub importu w nowym Outlooku.', 'info');
+}, [html, store.state, notify]);
 
   const handleExportMHT = useCallback(() => {
-    const boundary = '----=_NextPart_' + Date.now();
-    const mht = [
-      'From: <PORR Newsletter Generator>',
-      `Subject: ${store.state.issueNumber}`,
-      'MIME-Version: 1.0',
-      `Content-Type: multipart/related; boundary="${boundary}"; type="text/html"`,
-      '',
-      `--${boundary}`,
-      'Content-Type: text/html; charset="utf-8"',
-      'Content-Transfer-Encoding: 8bit',
-      'Content-Location: file:///newsletter.html',
-      '',
-      html,
-      '',
-      `--${boundary}--`,
-    ].join('\r\n');
+  const boundary = '----=_NextPart_' + Date.now();
+  const mht = [
+    'From: <PORR Newsletter Generator>',
+    `Subject: ${store.state.issueNumber}`,
+    'MIME-Version: 1.0',
+    `Content-Type: multipart/related; boundary="${boundary}"; type="text/html"`,
+    '',
+    `--${boundary}`,
+    'Content-Type: text/html; charset="utf-8"',
+    'Content-Transfer-Encoding: 8bit',
+    'Content-Location: file:///newsletter.html',
+    '',
+    html,
+    '',
+    `--${boundary}--`,
+  ].join('\r\n');
 
-    downloadFile(mht, 'newsletter.mht', 'message/rfc822');
-    notify('📄 MHT pobrany!');
-  }, [html, store.state.issueNumber, notify]);
+  downloadFile(mht, 'newsletter.mht', 'message/rfc822');
+  notify('📄 MHT pobrany!');
+}, [html, store.state.issueNumber, notify]);
 
   const handleCopyHTML = useCallback(() => {
     navigator.clipboard.writeText(html)
@@ -100,13 +100,13 @@ export function App() {
   }, [html]);
 
   const handleSaveProject = useCallback(() => {
-    try {
-      localStorage.setItem('porr_newsletter_current', JSON.stringify(store.state));
-      notify('💾 Projekt zapisany lokalnie!');
-    } catch {
-      notify('❌ Nie udało się zapisać projektu lokalnie.', 'error');
-    }
-  }, [notify, store.state]);
+  try {
+    localStorage.setItem('porr_newsletter_current', JSON.stringify(store.state));
+    notify('💾 Projekt zapisany lokalnie!');
+  } catch {
+    notify('❌ Nie udało się zapisać projektu lokalnie.', 'error');
+  }
+}, [notify, store.state]);
 
   const handleSaveProjectToFile = useCallback(() => {
     const data = JSON.stringify(store.state, null, 2);
