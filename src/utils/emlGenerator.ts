@@ -1,5 +1,9 @@
 import type { NewsletterState } from '@/types';
 
+interface GenerateEmlOptions {
+  draftMode?: boolean;
+}
+
 function toCRLF(value: string): string {
   return value.replace(/\r?\n/g, '\r\n');
 }
@@ -38,17 +42,60 @@ function foldHeader(name: string, value: string, max = 76): string {
     .join('\r\n');
 }
 
-function encodeBase64Utf8(value: string): string {
-  const bytes = new TextEncoder().encode(value);
-  let binary = '';
+function encodeQuotedPrintableUtf8(input: string): string {
+  const bytes = new TextEncoder().encode(toCRLF(input));
+  let result = '';
+  let lineLength = 0;
 
-  bytes.forEach((b) => {
-    binary += String.fromCharCode(b);
-  });
+  const push = (chunk: string) => {
+    if (lineLength + chunk.length > 73) {
+      result += '=\r\n';
+      lineLength = 0;
+    }
+    result += chunk;
+    lineLength += chunk.length;
+  };
 
-  const base64 = btoa(binary);
+  for (let i = 0; i < bytes.length; i += 1) {
+    const byte = bytes[i];
 
-  return base64.replace(/.{1,76}/g, '$&\r\n').trim();
+    if (byte === 13) {
+      result += '\r';
+      lineLength = 0;
+      continue;
+    }
+
+    if (byte === 10) {
+      result += '\n';
+      lineLength = 0;
+      continue;
+    }
+
+    const isPrintable =
+      (byte >= 33 && byte <= 60) ||
+      (byte >= 62 && byte <= 126);
+
+    if (isPrintable) {
+      push(String.fromCharCode(byte));
+      continue;
+    }
+
+    if (byte === 32 || byte === 9) {
+      const next = bytes[i + 1];
+      const atLineEnd = next === 13 || next === 10 || typeof next === 'undefined';
+
+      if (atLineEnd) {
+        push(`=${byte.toString(16).toUpperCase().padStart(2, '0')}`);
+      } else {
+        push(String.fromCharCode(byte));
+      }
+      continue;
+    }
+
+    push(`=${byte.toString(16).toUpperCase().padStart(2, '0')}`);
+  }
+
+  return result;
 }
 
 function stripHtml(html: string): string {
@@ -83,14 +130,17 @@ function buildMessageId(fromEmail: string): string {
   return `<${Date.now()}.${random}@${domain}>`;
 }
 
-export function generateEml(html: string, state: NewsletterState): string {
+export function generateEml(
+  html: string,
+  state: NewsletterState,
+  options: GenerateEmlOptions = {}
+): string {
+  const { draftMode = false } = options;
   const boundary = `----=_Part_${Date.now()}_${Math.random().toString(36).slice(2)}`;
   const fromEmail = sanitizeEmail(state.contactEmail || 'newsletter@example.com');
   const subjectRaw = state.issueNumber?.trim() || 'Newsletter';
   const subject = encodeHeaderUtf8(subjectRaw);
   const text = stripHtml(html);
-  const htmlPart = encodeBase64Utf8(toCRLF(html));
-  const textPart = encodeBase64Utf8(toCRLF(text));
 
   const headers = [
     foldHeader('From', `<${fromEmail}>`),
@@ -99,7 +149,7 @@ export function generateEml(html: string, state: NewsletterState): string {
     foldHeader('Date', new Date().toUTCString()),
     foldHeader('Message-ID', buildMessageId(fromEmail)),
     foldHeader('MIME-Version', '1.0'),
-    foldHeader('X-Unsent', '1'),
+    ...(draftMode ? [foldHeader('X-Unsent', '1')] : []),
     foldHeader('X-Mailer', 'PORR Newsletter Generator'),
     foldHeader('Content-Language', 'pl-PL'),
     foldHeader('Content-Type', `multipart/alternative; boundary="${boundary}"`),
@@ -110,15 +160,15 @@ export function generateEml(html: string, state: NewsletterState): string {
     '',
     `--${boundary}`,
     'Content-Type: text/plain; charset="utf-8"',
-    'Content-Transfer-Encoding: base64',
+    'Content-Transfer-Encoding: quoted-printable',
     '',
-    textPart,
+    encodeQuotedPrintableUtf8(text),
     '',
     `--${boundary}`,
     'Content-Type: text/html; charset="utf-8"',
-    'Content-Transfer-Encoding: base64',
+    'Content-Transfer-Encoding: quoted-printable',
     '',
-    htmlPart,
+    encodeQuotedPrintableUtf8(html),
     '',
     `--${boundary}--`,
     '',
