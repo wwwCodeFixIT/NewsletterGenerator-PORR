@@ -477,6 +477,7 @@ function ExportTab(props: {
   store: Store;
   onExportHTML: () => void;
   onExportEML: () => void;
+  onExportEMLDraft: () => void;
   onExportMHT: () => void;
   onCopyHTML: () => void;
   onCopyForNewOutlook: () => void;
