@@ -27,16 +27,15 @@ export function ExportTab({ state, notify, onShowCode, onShowOutlookHelp, loadSt
   const issues = useMemo(() => checkOutlookCompat(state), [state]);
   const hasErrors = issues.some((i) => i.severity === 'error');
   const hasWarnings = issues.some((i) => i.severity === 'warning');
-
   const safeBaseName = sanitizeFilename(state.issueNumber || 'newsletter');
 
-  const handleExportEMLClassic = () => {
+  const handleExportEditableDraft = () => {
     try {
       const eml = generateEml(html, state, { draftMode: true });
-      downloadFile(eml, `${safeBaseName}-classic-draft.eml`, 'message/rfc822');
-      notify('EML draft pobrany! Wersja pod klasyczny Outlook.', 'info');
+      downloadFile(eml, `${safeBaseName}-edytowalny-draft.eml`, 'message/rfc822');
+      notify('Draft .EML pobrany! Otwórz w klasycznym Outlooku i edytuj przed wysłaniem.', 'info');
     } catch {
-      notify('Nie udało się wygenerować pliku EML dla klasycznego Outlooka.', 'error');
+      notify('Nie udało się wygenerować draftu .EML.', 'error');
     }
   };
 
@@ -44,7 +43,7 @@ export function ExportTab({ state, notify, onShowCode, onShowOutlookHelp, loadSt
     try {
       const eml = generateEml(html, state, { draftMode: false });
       downloadFile(eml, `${safeBaseName}-new-outlook.eml`, 'message/rfc822');
-      notify('EML pobrany! Wersja pod nowy Outlook.', 'info');
+      notify('EML pobrany! Wersja do otwarcia w nowym Outlooku.', 'info');
     } catch {
       notify('Nie udało się wygenerować pliku EML dla nowego Outlooka.', 'error');
     }
@@ -62,7 +61,7 @@ export function ExportTab({ state, notify, onShowCode, onShowOutlookHelp, loadSt
 
   const handleExportHTML = () => {
     try {
-      downloadFile(html, `${safeBaseName}.html`, 'text/html;charset=utf-8');
+      downloadFile(html, `${safeBaseName}.html`, 'text/html;charset=utf-8', true);
       notify('HTML pobrany!');
     } catch {
       notify('Nie udało się pobrać HTML.', 'error');
@@ -81,9 +80,9 @@ export function ExportTab({ state, notify, onShowCode, onShowOutlookHelp, loadSt
   const handleCopyNewOutlook = async () => {
     try {
       await navigator.clipboard.writeText(html);
-      notify('Skopiowano! Wklej do "Moje szablony".', 'info');
+      notify('Skopiowano! Wklej do "Moje szablony" albo bezpośrednio do nowej wiadomości.', 'info');
     } catch {
-      notify('Nie udało się skopiować treści dla "Moje szablony".', 'error');
+      notify('Nie udało się skopiować treści dla nowego Outlooka.', 'error');
     }
   };
 
@@ -107,7 +106,8 @@ export function ExportTab({ state, notify, onShowCode, onShowOutlookHelp, loadSt
       downloadFile(
         JSON.stringify(state, null, 2),
         `${safeBaseName}-projekt.json`,
-        'application/json'
+        'application/json',
+        true
       );
       notify('Projekt wyeksportowany!');
     } catch {
@@ -198,12 +198,12 @@ export function ExportTab({ state, notify, onShowCode, onShowOutlookHelp, loadSt
         bgColor="bg-blue-900/8"
       >
         <div className="mb-1.5 rounded-lg border-l-2 border-blue-400/30 bg-black/20 p-1.5 text-[8px] leading-relaxed text-gray-400">
-          <strong className="mb-0.5 block text-[9px] text-[#feed01]">💡 Tworzenie szablonu .OFT:</strong>
-          1. Pobierz .EML draft → 2. Otwórz w klasycznym Outlook → 3. Zapisz jako → Szablon (.oft)
+          <strong className="mb-0.5 block text-[9px] text-[#feed01]">💡 Edytowanie przed wysyłką</strong>
+          Ten tryb tworzy wiadomość jako draft .EML. Po otwarciu w klasycznym Outlooku możesz edytować treść, temat, odbiorców i dopiero wtedy wysłać.
         </div>
 
         <div className="space-y-1">
-          <ExportBtn onClick={handleExportEMLClassic} icon="📧" label="Pobierz .EML draft" variant="blue" />
+          <ExportBtn onClick={handleExportEditableDraft} icon="📧" label="Edytuj przed wysyłką (.EML draft)" variant="blue" />
           <ExportBtn onClick={handleExportMHT} icon="📄" label="Pobierz .MHT" variant="ghost" />
         </div>
       </ExportSection>
@@ -216,13 +216,13 @@ export function ExportTab({ state, notify, onShowCode, onShowOutlookHelp, loadSt
         bgColor="bg-cyan-900/8"
       >
         <div className="mb-1.5 rounded-lg border-l-2 border-yellow-400/30 bg-black/20 p-1.5 text-[8px] leading-relaxed text-gray-400">
-          <strong className="mb-0.5 block text-[9px] text-yellow-400">ℹ️ Nowy Outlook</strong>
-          Obsługuje .EML, ale nie .OFT. Używaj eksportu .EML dla nowego Outlooka albo "Moje szablony".
+          <strong className="mb-0.5 block text-[9px] text-yellow-400">ℹ️ Ograniczenie nowego Outlooka</strong>
+          Nowy Outlook nie obsługuje stabilnie edytowalnych draftów .EML jak klasyczna wersja. Tutaj najlepiej działa kopiowanie treści do nowej wiadomości lub "Moje szablony".
         </div>
 
         <div className="space-y-1">
-          <ExportBtn onClick={handleExportEMLNewOutlook} icon="📧" label="Pobierz .EML" variant="cyan" />
-          <ExportBtn onClick={handleCopyNewOutlook} icon="📋" label='Kopiuj dla "Moje szablony"' variant="cyan" />
+          <ExportBtn onClick={handleExportEMLNewOutlook} icon="📧" label="Pobierz .EML do otwarcia" variant="cyan" />
+          <ExportBtn onClick={handleCopyNewOutlook} icon="📋" label='Kopiuj do nowej wiadomości / "Moje szablony"' variant="cyan" />
           <ExportBtn onClick={handleCopySignature} icon="✍️" label="Kopiuj jako podpis" variant="cyan" />
           <ExportBtn onClick={onShowOutlookHelp} icon="❓" label="Instrukcja krok po kroku" variant="ghost" />
         </div>
