@@ -14,6 +14,7 @@ export interface SidebarProps {
   onLoadProjectFromFile: (file: File) => void;
   onExportHTML: () => void;
   onExportEML: () => void;
+  onExportEMLDraft: () => void;
   onExportMHT: () => void;
   onCopyHTML: () => void;
   onCopyForNewOutlook: () => void;
@@ -135,25 +136,80 @@ function Section({ title, children, defaultOpen = true }: {
   );
 }
 
+async function fileToOptimizedDataUrl(file: File): Promise<string> {
+  const fileDataUrl = await new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (event) => resolve(event.target?.result as string);
+    reader.onerror = () => reject(new Error('read_failed'));
+    reader.readAsDataURL(file);
+  });
+
+  if (!file.type.startsWith('image/')) {
+    return fileDataUrl;
+  }
+
+  const image = await new Promise<HTMLImageElement>((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = () => reject(new Error('image_load_failed'));
+    img.src = fileDataUrl;
+  });
+
+  const maxWidth = 1600;
+  const maxHeight = 1200;
+  const ratio = Math.min(1, maxWidth / image.width, maxHeight / image.height);
+  const targetWidth = Math.max(1, Math.round(image.width * ratio));
+  const targetHeight = Math.max(1, Math.round(image.height * ratio));
+
+  const canvas = document.createElement('canvas');
+  canvas.width = targetWidth;
+  canvas.height = targetHeight;
+
+  const context = canvas.getContext('2d');
+  if (!context) {
+    return fileDataUrl;
+  }
+
+  context.drawImage(image, 0, 0, targetWidth, targetHeight);
+
+  const outputType = file.type === 'image/png' ? 'image/png' : 'image/jpeg';
+  const optimized = canvas.toDataURL(outputType, outputType === 'image/jpeg' ? 0.82 : undefined);
+
+  return optimized.length < fileDataUrl.length ? optimized : fileDataUrl;
+}
+
 function ImageUpload({ onUpload }: { onUpload: (dataUrl: string) => void }) {
   const inputRef = useRef<HTMLInputElement>(null);
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const [isProcessing, setIsProcessing] = useState(false);
+
+  const handleChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (ev) => { onUpload(ev.target?.result as string); };
-      reader.readAsDataURL(file);
+    if (!file) return;
+
+    setIsProcessing(true);
+
+    try {
+      const optimized = await fileToOptimizedDataUrl(file);
+      onUpload(optimized);
+    } finally {
+      setIsProcessing(false);
+      if (inputRef.current) {
+        inputRef.current.value = '';
+      }
     }
   };
+
   return (
     <div className="mb-2">
       <div
-        onClick={() => inputRef.current?.click()}
+        onClick={() => !isProcessing && inputRef.current?.click()}
         className="border-2 border-dashed border-[#253555] rounded-lg p-2 text-center cursor-pointer bg-[#1a1a2e] hover:border-[#feed01] hover:bg-[#feed01]/5 transition-all group"
       >
         <input ref={inputRef} type="file" accept="image/*" onChange={handleChange} className="hidden" />
-        <div className="text-base group-hover:scale-110 transition-transform">🖼️</div>
-        <p className="text-[9px] text-gray-500 group-hover:text-gray-400">Kliknij aby wgrać</p>
+        <div className="text-base group-hover:scale-110 transition-transform">{isProcessing ? '⏳' : '🖼️'}</div>
+        <p className="text-[9px] text-gray-500 group-hover:text-gray-400">
+          {isProcessing ? 'Optymalizuję obraz…' : 'Kliknij aby wgrać'}
+        </p>
       </div>
     </div>
   );
@@ -503,10 +559,10 @@ function ExportTab(props: {
     <div className="bg-[#1a1a2e] border-l-[3px] border-[#0078d4] p-2 rounded-r-md mb-2">
       <p className="text-[#feed01] text-[10px] font-bold mb-1">📋 Jak użyć w klasycznym Outlooku:</p>
       <ol className="text-[9px] text-gray-400 list-decimal ml-3 space-y-0.5">
-        <li>Pobierz plik .EML poniżej</li>
+        <li>Pobierz plik .EML draft poniżej</li>
         <li>Otwórz go w Outlook Desktop</li>
-        <li>Możesz wysłać go od razu lub zapisać jako Szablon Outlook (.oft)</li>
-        <li>Dla stałego szablonu: Plik → Zapisz jako → Szablon Outlook (.oft)</li>
+        <li>Możesz edytować treść, odbiorców i temat przed wysłaniem</li>
+        <li>Jeśli wgrywasz obrazy z dysku, generator osadza je jako załączniki MIME zamiast ciężkiego HTML</li>
       </ol>
     </div>
 

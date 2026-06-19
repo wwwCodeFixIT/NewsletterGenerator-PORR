@@ -24,6 +24,7 @@ export function OutlookHelpModal({ onClose }: OutlookHelpModalProps) {
               <code className="bg-[#1a1a2e] px-1 rounded text-[#00d9a5]">newsletter.eml</code> i kliknij dwukrotnie
             </li>
             <li>Outlook otworzy wiadomość – sprawdź podgląd</li>
+            <li>Wgrane lokalnie obrazy są pakowane jako załączniki MIME, co zmniejsza ryzyko błędu zbyt dużej wersji roboczej</li>
             <li>Kliknij <strong className="text-white">Plik → Zapisz jako</strong></li>
             <li>Zmień typ na <strong className="text-[#feed01]">Szablon programu Outlook (.oft)</strong></li>
             <li>Zapisz w wybranej lokalizacji</li>
