@@ -53,22 +53,16 @@ export function generateEmailHTML(s: NewsletterState): string {
 
   // Header with logo
   const headerHTML = `
-<table border="0" cellpadding="0" cellspacing="0" width="600" align="center" style="width:600px;max-width:600px;" class="responsive" bgcolor="#ffffff">
+<table role="presentation" border="0" cellpadding="0" cellspacing="0" width="600" align="center" style="width:600px;max-width:600px;" class="responsive" bgcolor="#ffffff">
   <tr>
-    <td style="padding-top:20px;padding-bottom:0px;padding-left:20px;padding-right:20px;">
-      <table border="0" cellpadding="0" cellspacing="0" width="100%" bgcolor="${pc}" style="background-color:${pc};">
+    <td align="center" style="padding-top:20px;padding-bottom:0;padding-left:20px;padding-right:20px;">
+      <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="560" align="center" style="width:560px;max-width:560px;background-color:${pc};" bgcolor="${pc}">
         <tr>
-          <td style="padding-top:22px;padding-bottom:22px;padding-left:25px;padding-right:25px;">
-            <table border="0" cellpadding="0" cellspacing="0" width="100%">
-              <tr>
-                <td style="vertical-align:middle;font-family:${ff};font-size:22px;color:${ac};font-weight:bold;line-height:28px;">
-                  ${esc(s.issueNumber)}
-                </td>
-                <td width="100" align="right" style="vertical-align:middle;">
-                  <img src="${esc(s.logoUrl)}" width="80" border="0" alt="PORR" style="display:block;border:0;outline:none;text-decoration:none;-ms-interpolation-mode:bicubic;">
-                </td>
-              </tr>
-            </table>
+          <td width="380" style="padding-top:22px;padding-bottom:22px;padding-left:25px;padding-right:15px;vertical-align:middle;font-family:${ff};font-size:22px;color:${ac};font-weight:bold;line-height:28px;">
+            ${esc(s.issueNumber)}
+          </td>
+          <td width="180" align="right" style="padding-top:22px;padding-bottom:22px;padding-left:15px;padding-right:25px;vertical-align:middle;">
+            <img src="${esc(s.logoUrl)}" width="80" border="0" alt="PORR" style="display:block;border:0;outline:none;text-decoration:none;-ms-interpolation-mode:bicubic;">
           </td>
         </tr>
       </table>
