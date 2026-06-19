@@ -75,7 +75,7 @@ export function generateEmailHTML(s: NewsletterState): string {
 <table border="0" cellpadding="0" cellspacing="0" width="600" align="center" style="width:600px;max-width:600px;" class="responsive" bgcolor="#ffffff">
   <tr>
     <td style="padding-top:5px;padding-bottom:0px;padding-left:20px;padding-right:20px;">
-      <img src="${esc(s.mainImage)}" width="560" border="0" alt="${esc(s.mainTitle)}" style="display:block;border:0;outline:none;text-decoration:none;width:560px;max-width:100%;height:auto;-ms-interpolation-mode:bicubic;">
+      <img src="${esc(s.mainImage)}" width="560" border="0" alt="${esc(s.mainTitle)}" style="display:block;border:0;outline:none;text-decoration:none;width:560px;max-width:560px;height:auto;-ms-interpolation-mode:bicubic;">
     </td>
   </tr>
   <tr>
