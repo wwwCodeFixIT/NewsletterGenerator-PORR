@@ -55,32 +55,30 @@ export function generateEmailHTML(s: NewsletterState): string {
   const headerHTML = `
 <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="600" align="center" style="width:600px;max-width:600px;" class="responsive" bgcolor="#ffffff">
   <tr>
-    <td align="center" style="padding-top:20px;padding-bottom:0;padding-left:20px;padding-right:20px;">
+    <td style="padding:20px 20px 0 20px;">
       <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="560" align="center" style="width:560px;max-width:560px;background-color:${pc};" bgcolor="${pc}">
         <tr>
-          <td width="380" style="padding-top:22px;padding-bottom:22px;padding-left:25px;padding-right:15px;vertical-align:middle;font-family:${ff};font-size:22px;color:${ac};font-weight:bold;line-height:28px;">
+          <td width="380" style="padding:22px 15px 22px 25px;vertical-align:middle;font-family:${ff};font-size:22px;color:${ac};font-weight:bold;line-height:28px;">
             ${esc(s.issueNumber)}
           </td>
-          <td width="180" align="right" style="padding-top:22px;padding-bottom:22px;padding-left:15px;padding-right:25px;vertical-align:middle;">
+          <td width="180" align="right" style="padding:22px 25px 22px 15px;vertical-align:middle;">
             <img src="${esc(s.logoUrl)}" width="80" border="0" alt="PORR" style="display:block;border:0;outline:none;text-decoration:none;-ms-interpolation-mode:bicubic;">
           </td>
         </tr>
       </table>
     </td>
-  </tr>
-</table>`;
+  </tr>`;
 
   // Main article with hero image
   const mainArticleHTML = `
-<table border="0" cellpadding="0" cellspacing="0" width="600" align="center" style="width:600px;max-width:600px;" class="responsive" bgcolor="#ffffff">
   <tr>
-    <td style="padding-top:5px;padding-bottom:0px;padding-left:20px;padding-right:20px;">
+    <td style="padding:0 20px 0 20px;">
       <img src="${esc(s.mainImage)}" width="560" border="0" alt="${esc(s.mainTitle)}" style="display:block;border:0;outline:none;text-decoration:none;width:560px;max-width:560px;height:auto;-ms-interpolation-mode:bicubic;">
     </td>
   </tr>
   <tr>
-    <td style="padding-top:25px;padding-bottom:10px;padding-left:20px;padding-right:20px;">
-      <h2 style="margin:0;padding:0;padding-bottom:15px;font-family:${ff};font-size:20px;font-weight:bold;color:${tc};line-height:26px;">
+    <td style="padding:25px 20px 10px 20px;">
+      <h2 style="margin:0;padding:0 0 15px 0;font-family:${ff};font-size:20px;font-weight:bold;color:${tc};line-height:26px;">
         ${esc(s.mainTitle)}
       </h2>
       <p style="margin:0;padding:0;font-family:${ff};font-size:14px;color:${tc};line-height:22px;">
@@ -89,7 +87,7 @@ export function generateEmailHTML(s: NewsletterState): string {
     </td>
   </tr>
   <tr>
-    <td style="padding-top:10px;padding-bottom:25px;padding-left:20px;padding-right:20px;">
+    <td style="padding:10px 20px 25px 20px;">
       ${vmlButton(s.mainLink, 'Czytaj więcej', ac, btc, ff)}
     </td>
   </tr>
