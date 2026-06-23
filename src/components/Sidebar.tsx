@@ -736,6 +736,7 @@ export function Sidebar(props: SidebarProps) {
               store={store}
               onExportHTML={props.onExportHTML}
               onExportEML={props.onExportEML}
+              onExportEMLDraft={props.onExportEMLDraft}
               onExportMHT={props.onExportMHT}
               onCopyHTML={props.onCopyHTML}
               onCopyForNewOutlook={props.onCopyForNewOutlook}
