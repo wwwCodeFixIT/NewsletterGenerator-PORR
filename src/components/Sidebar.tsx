@@ -15,6 +15,8 @@ export interface SidebarProps {
   onExportHTML: () => void;
   onExportEML: () => void;
   onExportEMLDraft: () => void;
+  onExportEMLSafe: () => void;
+  onExportEMLDraftSafe: () => void;
   onExportMHT: () => void;
   onCopyHTML: () => void;
   onCopyForNewOutlook: () => void;
@@ -534,6 +536,8 @@ function ExportTab(props: {
   onExportHTML: () => void;
   onExportEML: () => void;
   onExportEMLDraft: () => void;
+  onExportEMLSafe: () => void;
+  onExportEMLDraftSafe: () => void;
   onExportMHT: () => void;
   onCopyHTML: () => void;
   onCopyForNewOutlook: () => void;
@@ -559,19 +563,21 @@ function ExportTab(props: {
     <div className="bg-[#1a1a2e] border-l-[3px] border-[#0078d4] p-2 rounded-r-md mb-2">
       <p className="text-[#feed01] text-[10px] font-bold mb-1">📋 Jak użyć w klasycznym Outlooku:</p>
       <ol className="text-[9px] text-gray-400 list-decimal ml-3 space-y-0.5">
-        <li>Pobierz plik .EML draft poniżej</li>
-        <li>Otwórz go w Outlook Desktop</li>
-        <li>Możesz edytować treść, odbiorców i temat przed wysłaniem</li>
-        <li>Jeśli wgrywasz obrazy z dysku, generator osadza je jako załączniki MIME zamiast ciężkiego HTML</li>
+        <li><strong>Outlook Safe</strong> usuwa obrazy zewnętrzne, żeby ograniczyć pasek „Kliknij, aby pobrać obrazy”.</li>
+        <li>Lokalnie wgrane obrazy zostają osadzone jako CID i powinny być widoczne od razu.</li>
+        <li>Standardowy draft zostawia obrazy z linków HTTPS, więc Outlook może je blokować.</li>
       </ol>
     </div>
 
+    <Btn variant="outlook" onClick={props.onExportEMLDraftSafe}>
+      🛡️ .EML draft Outlook Safe
+    </Btn>
     <Btn variant="outlook" onClick={props.onExportEMLDraft}>
-  📧 Pobierz .EML draft
-</Btn>
-<Btn variant="outlook" onClick={props.onExportMHT}>
-  📄 Pobierz .MHT
-</Btn>
+      📧 .EML draft standard
+    </Btn>
+    <Btn variant="outlook" onClick={props.onExportMHT}>
+      📄 Pobierz .MHT
+    </Btn>
   </div>
 
   {/* New Outlook */}
@@ -588,9 +594,12 @@ function ExportTab(props: {
       </p>
     </div>
 
+    <Btn variant="outlook" onClick={props.onExportEMLSafe}>
+      🛡️ Pobierz .EML Outlook Safe
+    </Btn>
     <Btn variant="outlook" onClick={props.onExportEML}>
-  📧 Pobierz .EML do nowego Outlooka
-</Btn>
+      📧 Pobierz .EML standard
+    </Btn>
     <Btn variant="outlook-new" onClick={props.onCopyForNewOutlook}>📋 Kopiuj dla "Moje szablony"</Btn>
     <Btn variant="outlook-new" onClick={props.onCopyAsSignature}>✍️ Kopiuj jako podpis</Btn>
     <Btn variant="secondary" onClick={props.onShowOutlookHelp}>❓ Instrukcja krok po kroku</Btn>
@@ -737,6 +746,8 @@ export function Sidebar(props: SidebarProps) {
               onExportHTML={props.onExportHTML}
               onExportEML={props.onExportEML}
               onExportEMLDraft={props.onExportEMLDraft}
+              onExportEMLSafe={props.onExportEMLSafe}
+              onExportEMLDraftSafe={props.onExportEMLDraftSafe}
               onExportMHT={props.onExportMHT}
               onCopyHTML={props.onCopyHTML}
               onCopyForNewOutlook={props.onCopyForNewOutlook}

@@ -9,31 +9,26 @@ export function OutlookHelpModal({ onClose }: OutlookHelpModalProps) {
     <Modal title="📘 Instrukcja - Outlook" onClose={onClose}>
       <div className="space-y-6 text-sm">
         <section>
-          <div className="flex items-center gap-2 mb-3">
-            <span className="text-[10px] bg-[#0078d4] text-white px-2 py-0.5 rounded-full font-bold">
+          <div className="mb-3 flex items-center gap-2">
+            <span className="rounded-full bg-[#0078d4] px-2 py-0.5 text-[10px] font-bold text-white">
               Outlook Desktop 2007-2019
             </span>
           </div>
 
-          <h4 className="text-[#feed01] font-bold mb-2">Metoda 1: .EML i opcjonalnie zapis jako .OFT</h4>
+          <h4 className="mb-2 font-bold text-[#feed01]">Najlepsza metoda: .EML draft Outlook Safe</h4>
 
-          <ol className="list-decimal ml-5 text-gray-300 space-y-2">
-            <li>W zakładce Eksport kliknij <strong className="text-white">📧 Pobierz .EML</strong></li>
-            <li>
-              Znajdź pobrany plik{' '}
-              <code className="bg-[#1a1a2e] px-1 rounded text-[#00d9a5]">newsletter.eml</code> i kliknij dwukrotnie
-            </li>
-            <li>Outlook otworzy wiadomość – sprawdź podgląd</li>
-            <li>Wgrane lokalnie obrazy są pakowane jako załączniki MIME, co zmniejsza ryzyko błędu zbyt dużej wersji roboczej</li>
-            <li>Kliknij <strong className="text-white">Plik → Zapisz jako</strong></li>
-            <li>Zmień typ na <strong className="text-[#feed01]">Szablon programu Outlook (.oft)</strong></li>
-            <li>Zapisz w wybranej lokalizacji</li>
+          <ol className="ml-5 list-decimal space-y-2 text-gray-300">
+            <li>W zakładce Eksport kliknij <strong className="text-white">🛡️ .EML draft Outlook Safe</strong></li>
+            <li>Otwórz pobrany plik w klasycznym Outlooku</li>
+            <li>Możesz edytować temat, treść, odbiorców i dopiero potem wysłać</li>
+            <li>Lokalnie wgrane obrazy są osadzane jako <strong className="text-white">CID inline attachments</strong></li>
+            <li>Zewnętrzne obrazy HTTPS są pomijane, żeby ograniczyć pasek „Kliknij, aby pobrać obrazy”</li>
           </ol>
 
-          <div className="bg-[#1a1a2e] border-l-[3px] border-[#0078d4] p-3 rounded-r-lg mt-3">
-            <p className="text-[#0078d4] text-[11px] font-bold mb-1">💡 Jak używać szablonu .OFT:</p>
-            <p className="text-gray-400 text-[11px]">
-              Plik → Nowy → Więcej elementów → Wybierz formularz → Szablony użytkownika
+          <div className="mt-3 rounded-r-lg border-l-[3px] border-[#0078d4] bg-[#1a1a2e] p-3">
+            <p className="mb-1 text-[11px] font-bold text-[#0078d4]">💡 Jeśli chcesz mieć wszystkie obrazy widoczne od razu:</p>
+            <p className="text-[11px] text-gray-400">
+              wgraj logo, zdjęcie główne i zdjęcia artykułów lokalnie w generatorze. Nie wklejaj ich jako URL HTTPS.
             </p>
           </div>
         </section>
@@ -41,69 +36,52 @@ export function OutlookHelpModal({ onClose }: OutlookHelpModalProps) {
         <div className="h-px bg-[#253555]" />
 
         <section>
-          <div className="flex items-center gap-2 mb-3">
-            <span className="text-[10px] bg-gradient-to-r from-[#0078d4] to-[#00bcf2] text-white px-2 py-0.5 rounded-full font-bold">
+          <h4 className="mb-2 font-bold text-[#feed01]">Różnica między eksportami</h4>
+
+          <div className="space-y-2 text-[11px] text-gray-300">
+            <div className="rounded-lg border border-white/[0.06] bg-white/[0.03] p-3">
+              <strong className="text-white">🛡️ Outlook Safe</strong>
+              <p className="mt-1 text-gray-400">
+                Najlepszy do klasycznego Outlooka, gdy nie chcesz paska pobierania obrazów. Lokalnie wgrane obrazy zostają, zewnętrzne obrazy są pomijane.
+              </p>
+            </div>
+            <div className="rounded-lg border border-white/[0.06] bg-white/[0.03] p-3">
+              <strong className="text-white">📧 Standard</strong>
+              <p className="mt-1 text-gray-400">
+                Zachowuje wszystkie obrazy, także zewnętrzne HTTPS. Outlook może wtedy pokazać komunikat o pobieraniu obrazów — to normalne zabezpieczenie.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <div className="h-px bg-[#253555]" />
+
+        <section>
+          <div className="mb-3 flex items-center gap-2">
+            <span className="rounded-full bg-gradient-to-r from-[#0078d4] to-[#00bcf2] px-2 py-0.5 text-[10px] font-bold text-white">
               Nowy Outlook / Web
             </span>
           </div>
 
-          <h4 className="text-[#feed01] font-bold mb-2">Opcja 1: Otwórz lub zaimportuj .EML</h4>
+          <h4 className="mb-2 font-bold text-[#feed01]">Zalecany flow</h4>
 
-          <ol className="list-decimal ml-5 text-gray-300 space-y-1.5">
-            <li>Kliknij <strong className="text-white">📧 Pobierz .EML</strong></li>
-            <li>W nowym Outlooku otwórz plik dwuklikiem albo przeciągnij go do aplikacji</li>
-            <li>Przy wielu plikach użyj <strong className="text-white">Ustawienia → Ogólne → Importuj</strong></li>
-            <li>Po otwarciu sprawdź podgląd i wyślij lub zapisz jako wersję roboczą</li>
-          </ol>
-
-          <div className="h-px bg-[#253555] my-4" />
-
-          <h4 className="text-[#feed01] font-bold mb-2">Opcja 2: Moje szablony</h4>
-
-          <ol className="list-decimal ml-5 text-gray-300 space-y-1.5">
-            <li>Kliknij <strong className="text-white">📋 Kopiuj dla "Moje szablony"</strong></li>
-            <li>W Outlook kliknij <strong className="text-white">Nowa wiadomość</strong></li>
-            <li>
-              Na pasku narzędzi kliknij <strong className="text-white">⋯ (więcej)</strong> →{' '}
-              <strong className="text-[#feed01]">Moje szablony</strong>
-            </li>
-            <li>Kliknij <strong className="text-white">+ Szablon</strong></li>
-            <li>Nadaj nazwę i wklej kod <strong className="text-white">(Ctrl+V)</strong></li>
-            <li>Zapisz – szablon jest gotowy do wielokrotnego użytku!</li>
-          </ol>
-
-          <div className="h-px bg-[#253555] my-4" />
-
-          <h4 className="text-[#feed01] font-bold mb-2">Opcja 3: Podpis HTML</h4>
-
-          <ol className="list-decimal ml-5 text-gray-300 space-y-1.5">
-            <li>Kliknij <strong className="text-white">✍️ Kopiuj jako podpis</strong></li>
-            <li>Otwórz <strong className="text-white">Ustawienia → Poczta → Podpisy</strong></li>
-            <li>Kliknij <strong className="text-white">+ Nowy podpis</strong></li>
-            <li>Przełącz na edycję HTML i wklej kod</li>
-            <li>Przy tworzeniu maila wybierz ten podpis</li>
+          <ol className="ml-5 list-decimal space-y-1.5 text-gray-300">
+            <li>Do podglądu użyj <strong className="text-white">🛡️ Pobierz .EML Outlook Safe</strong> albo standardowego .EML</li>
+            <li>Do edycji przed wysyłką najstabilniejsze jest <strong className="text-white">📋 Kopiuj dla "Moje szablony"</strong></li>
+            <li>Nowy Outlook nie obsługuje niezawodnie draftów .EML z <code className="rounded bg-[#1a1a2e] px-1 text-[#00d9a5]">X-Unsent: 1</code></li>
           </ol>
         </section>
 
         <div className="h-px bg-[#253555]" />
 
         <section>
-          <div className="bg-[#1a1a2e] border-l-[3px] border-[#00d9a5] p-4 rounded-r-lg">
-            <p className="text-[#00d9a5] font-bold text-xs mb-1">💡 Wskazówka: Powrót do klasycznego Outlooka</p>
-            <p className="text-gray-400 text-[11px]">
-              Jeśli potrzebujesz pełnej obsługi .OFT: <strong className="text-white">Ustawienia → Ogólne → Wyłącz "Nowy Outlook"</strong>
-            </p>
-          </div>
-        </section>
-
-        <section>
-          <div className="bg-[#1a1a2e] border-l-[3px] border-yellow-500 p-4 rounded-r-lg">
-            <p className="text-yellow-400 font-bold text-xs mb-1">⚠️ Ważne dla Outlook Desktop</p>
-            <ul className="text-gray-400 text-[11px] list-disc ml-4 space-y-1">
-              <li>Outlook renderuje HTML używając silnika Word – nie wszystkie style CSS działają</li>
-              <li>Generator automatycznie stosuje kompatybilne rozwiązania (tabele, VML, inline styles)</li>
-              <li>Obrazki zewnętrzne mogą wymagać odblokowania przez odbiorcę</li>
-              <li>Testuj zawsze na docelowej wersji Outlooka przed wysyłką</li>
+          <div className="rounded-r-lg border-l-[3px] border-yellow-500 bg-[#1a1a2e] p-4">
+            <p className="mb-1 text-xs font-bold text-yellow-400">⚠️ Ważne o pasku „Kliknij, aby pobrać obrazy”</p>
+            <ul className="ml-4 list-disc space-y-1 text-[11px] text-gray-400">
+              <li>Nie da się go wyłączyć z poziomu samego HTML-a, jeśli mail zawiera zewnętrzne obrazki.</li>
+              <li>Najlepsze obejście: wgrać obrazy lokalnie i eksportować przez Outlook Safe.</li>
+              <li>Ikony social media są zewnętrzne, więc w trybie Outlook Safe są pomijane.</li>
+              <li>Wysyłkę produkcyjną zawsze testuj na docelowej wersji Outlooka.</li>
             </ul>
           </div>
         </section>

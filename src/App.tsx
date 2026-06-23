@@ -48,16 +48,28 @@ export function App() {
 }, [html, notify]);
 
   const handleExportEML = useCallback(() => {
-  const eml = generateEml(html, store.state, { draftMode: false });
+  const eml = generateEml(html, store.state, { draftMode: false, externalImageMode: 'keep' });
   downloadFile(eml, 'newsletter.eml', 'message/rfc822');
   notify('📧 EML pobrany! Wersja pod nowy Outlook.', 'info');
 }, [html, store.state, notify]);
 
   const handleExportEMLDraft = useCallback(() => {
-  const eml = generateEml(html, store.state, { draftMode: true });
-  downloadFile(eml, 'newsletter-draft.eml', 'message/rfc822');
-  notify('📧 EML draft pobrany! Wersja pod klasyczny Outlook.', 'info');
-}, [html, store.state, notify]);
+    const eml = generateEml(html, store.state, { draftMode: true, externalImageMode: 'keep' });
+    downloadFile(eml, 'newsletter-draft.eml', 'message/rfc822');
+    notify('📧 EML draft pobrany! Wersja pod klasyczny Outlook.', 'info');
+  }, [html, store.state, notify]);
+
+  const handleExportEMLSafe = useCallback(() => {
+    const eml = generateEml(html, store.state, { draftMode: false, externalImageMode: 'remove' });
+    downloadFile(eml, 'newsletter-outlook-safe.eml', 'message/rfc822');
+    notify('🛡️ EML Outlook Safe pobrany! Zewnętrzne obrazy zostały pominięte, lokalne są osadzone jako CID.', 'info');
+  }, [html, store.state, notify]);
+
+  const handleExportEMLDraftSafe = useCallback(() => {
+    const eml = generateEml(html, store.state, { draftMode: true, externalImageMode: 'remove' });
+    downloadFile(eml, 'newsletter-draft-outlook-safe.eml', 'message/rfc822');
+    notify('🛡️ EML draft Outlook Safe pobrany! Lokalnie wgrane obrazy zostają, zewnętrzne są pomijane.', 'info');
+  }, [html, store.state, notify]);
 
   const handleExportMHT = useCallback(() => {
   const boundary = '----=_NextPart_' + Date.now();
@@ -245,6 +257,8 @@ export function App() {
           onExportHTML={handleExportHTML}
           onExportEML={handleExportEML}
           onExportEMLDraft={handleExportEMLDraft}
+          onExportEMLSafe={handleExportEMLSafe}
+          onExportEMLDraftSafe={handleExportEMLDraftSafe}
           onExportMHT={handleExportMHT}
           onCopyHTML={handleCopyHTML}
           onCopyForNewOutlook={handleCopyForNewOutlook}

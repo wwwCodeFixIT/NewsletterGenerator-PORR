@@ -59,12 +59,26 @@ function dataUrlByteSize(value: string): number {
 }
 
 function allImageSources(s: NewsletterState): string[] {
-  return [
+  const sources = [
     s.logoUrl,
     s.mainImage,
     s.videoThumbnail,
     ...s.articles.map((article) => article.image),
   ].filter(Boolean);
+
+  if (s.showSocial) {
+    sources.push(
+      'https://eyifvsv.stripocdn.email/content/assets/img/social-icons/logo-colored/facebook-logo-colored.png',
+      'https://eyifvsv.stripocdn.email/content/assets/img/social-icons/logo-colored/linkedin-logo-colored.png',
+      'https://eyifvsv.stripocdn.email/content/assets/img/social-icons/logo-colored/youtube-logo-colored.png'
+    );
+  }
+
+  return sources;
+}
+
+function isExternalImage(src: string): boolean {
+  return /^https?:\/\//i.test(src || '');
 }
 
 export function checkOutlookCompat(s: NewsletterState): OutlookCompatIssue[] {
@@ -72,6 +86,7 @@ export function checkOutlookCompat(s: NewsletterState): OutlookCompatIssue[] {
   const images = allImageSources(s);
   const localImages = images.filter((src) => src.startsWith('data:'));
   const localImagesSize = localImages.reduce((sum, src) => sum + dataUrlByteSize(src), 0);
+  const externalImages = images.filter(isExternalImage);
 
   if (!s.issueNumber?.trim()) {
     issues.push({ severity: 'warning', message: 'Brakuje numeru wydania / tematu wiadomości.' });
@@ -81,10 +96,24 @@ export function checkOutlookCompat(s: NewsletterState): OutlookCompatIssue[] {
     issues.push({ severity: 'warning', message: 'Brakuje głównego obrazka newslettera.' });
   }
 
+  if (externalImages.length > 0) {
+    issues.push({
+      severity: 'warning',
+      message: `Wykryto ${externalImages.length} obraz(ów) zewnętrznych. Outlook może pokazać pasek „Kliknij, aby pobrać obrazy”. Użyj eksportu Outlook Safe albo wgraj obrazy lokalnie.`,
+    });
+  }
+
+  if (s.showSocial) {
+    issues.push({
+      severity: 'warning',
+      message: 'Ikony social media są zewnętrzne. W trybie Outlook Safe zostaną pominięte, żeby ograniczyć blokadę pobierania obrazów.',
+    });
+  }
+
   if (localImages.length > 0) {
     issues.push({
-      severity: localImagesSize > 8 * 1024 * 1024 ? 'error' : 'warning',
-      message: `Wykryto ${localImages.length} obraz(ów) z dysku. Eksport .EML osadzi je jako CID, ale kopiowanie HTML do Outlooka może być ciężkie.`,
+      severity: localImagesSize > 8 * 1024 * 1024 ? 'error' : 'ok',
+      message: `Wykryto ${localImages.length} lokalnie wgrany/e obraz(y). Eksport .EML osadzi je jako CID inline attachments.`,
     });
   }
 
@@ -93,7 +122,7 @@ export function checkOutlookCompat(s: NewsletterState): OutlookCompatIssue[] {
   }
 
   if (images.some((src) => src.startsWith('http://'))) {
-    issues.push({ severity: 'warning', message: 'Część obrazów używa HTTP. Lepiej stosować HTTPS.' });
+    issues.push({ severity: 'warning', message: 'Część obrazów używa HTTP. Lepiej stosować HTTPS albo wgrać obrazy lokalnie.' });
   }
 
   if (issues.length === 0) {
