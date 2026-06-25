@@ -5,6 +5,7 @@ const defaultState: NewsletterState = {
   issueNumber: 'Espinacz nr 4/2026',
   preheader: '',
   logoUrl: 'https://eyifvsv.stripocdn.email/content/guids/CABINET_ca0715bd41167d78d8998eff7cc81b8d6196f4289576108dfc827ce6ec8fc9fa/images/_porr_rgb_screenpng.png',
+  viewOnlineUrl: '',
   mainTitle: 'Wiecha w górę na budynku serwerowni FRA32',
   mainDescription: 'Nasze zespoły PORR Polska i PORR Niemcy pracujące ramię w ramię przy budowie centrum danych FRA32 w podfrankfurckim Raunheim osiągnęły właśnie kolejny kamień milowy!',
   mainImage: 'https://eyifvsv.stripocdn.email/content/guids/CABINET_ca0715bd41167d78d8998eff7cc81b8d6196f4289576108dfc827ce6ec8fc9fa/images/linkedin_29.jpg',
@@ -252,6 +253,12 @@ export function useNewsletterStore() {
     return loadLibrary().sort((a, b) => b.savedAt.localeCompare(a.savedAt));
   }, []);
 
+  const getLibraryStats = useCallback((): { count: number; bytes: number } => {
+    const library = loadLibrary();
+    const bytes = new Blob([JSON.stringify(library)]).size;
+    return { count: library.length, bytes };
+  }, []);
+
   const saveToLibrary = useCallback((name: string): boolean => {
     const library = loadLibrary();
     const entry: SavedProject = {
@@ -299,6 +306,7 @@ export function useNewsletterStore() {
     removeFeedbackOption,
     updateFeedbackOption,
     getLibrary,
+    getLibraryStats,
     saveToLibrary,
     loadFromLibrary,
     deleteFromLibrary,

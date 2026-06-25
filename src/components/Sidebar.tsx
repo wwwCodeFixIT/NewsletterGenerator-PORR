@@ -6,6 +6,7 @@ import { ArticlesTab } from './Sidebar/ArticlesTab';
 import { FeedbackTab } from './Sidebar/FeedbackTab';
 import { StyleTab } from './Sidebar/StyleTab';
 import { ExportTab } from './Sidebar/ExportTab';
+import { formatBytes } from '@/utils/format';
 
 type Store = ReturnType<typeof useNewsletterStore>;
 
@@ -61,6 +62,7 @@ export function Sidebar(props: SidebarProps) {
   } = props;
   const loadRef = useRef<HTMLInputElement>(null);
   const library = store.getLibrary();
+  const libraryStats = store.getLibraryStats();
 
   const handleLoadLibraryEntry = useCallback((p: SavedProject) => {
     if (store.loadFromLibrary(p.id)) {
@@ -109,7 +111,9 @@ export function Sidebar(props: SidebarProps) {
           {/* Biblioteka projektów */}
           <div className="rounded-lg border border-white/[0.05] bg-white/[0.02] p-2 mb-2">
             <div className="mb-1 flex items-center justify-between">
-              <h4 className="text-[#feed01] text-[9px] font-bold uppercase tracking-wider">📚 Biblioteka</h4>
+              <h4 className="text-[#feed01] text-[9px] font-bold uppercase tracking-wider">
+                📚 Biblioteka {library.length > 0 && <span className="text-gray-500 font-normal">({formatBytes(libraryStats.bytes)})</span>}
+              </h4>
               <button onClick={onShowLibrary} className="text-[8px] text-gray-500 hover:text-[#feed01] transition-colors">
                 Zarządzaj →
               </button>

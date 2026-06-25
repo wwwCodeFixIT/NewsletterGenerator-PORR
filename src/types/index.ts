@@ -20,6 +20,7 @@ export interface NewsletterState {
   issueNumber: string;
   preheader: string;
   logoUrl: string;
+  viewOnlineUrl: string;
 
   // Main article
   mainTitle: string;

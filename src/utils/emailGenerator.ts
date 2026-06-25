@@ -81,6 +81,83 @@ function isExternalImage(src: string): boolean {
   return /^https?:\/\//i.test(src || '');
 }
 
+// ===== WCAG: kontrast kolorów =====
+
+function hexToRgb(hex: string): [number, number, number] | null {
+  const clean = (hex || '').replace('#', '').trim();
+  const full = clean.length === 3 ? clean.split('').map((c) => c + c).join('') : clean;
+  if (!/^[0-9a-f]{6}$/i.test(full)) return null;
+  const num = parseInt(full, 16);
+  return [(num >> 16) & 255, (num >> 8) & 255, num & 255];
+}
+
+function relativeLuminance([r, g, b]: [number, number, number]): number {
+  const [rs, gs, bs] = [r, g, b].map((v) => {
+    const c = v / 255;
+    return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+  });
+  return 0.2126 * rs + 0.7152 * gs + 0.0722 * bs;
+}
+
+function contrastRatio(hex1: string, hex2: string): number | null {
+  const rgb1 = hexToRgb(hex1);
+  const rgb2 = hexToRgb(hex2);
+  if (!rgb1 || !rgb2) return null;
+  const l1 = relativeLuminance(rgb1);
+  const l2 = relativeLuminance(rgb2);
+  const lighter = Math.max(l1, l2);
+  const darker = Math.min(l1, l2);
+  return (lighter + 0.05) / (darker + 0.05);
+}
+
+function contrastIssue(label: string, fg: string, bg: string): OutlookCompatIssue {
+  const ratio = contrastRatio(fg, bg);
+  if (ratio === null) {
+    return { severity: 'warning', message: `${label}: nie można sprawdzić kontrastu (nieprawidłowy format koloru).` };
+  }
+  const rounded = ratio.toFixed(1);
+  if (ratio >= 4.5) {
+    return { severity: 'ok', message: `${label}: kontrast ${rounded}:1 — zgodne z WCAG AA.` };
+  }
+  if (ratio >= 3) {
+    return { severity: 'warning', message: `${label}: kontrast ${rounded}:1 — czytelne, ale poniżej zalecanych 4.5:1.` };
+  }
+  return { severity: 'error', message: `${label}: kontrast ${rounded}:1 — prawdopodobnie nieczytelne, popraw kolory.` };
+}
+
+// ===== Dobre praktyki: temat, preheader, dostępność kolorów =====
+
+export function checkContentQuality(s: NewsletterState): OutlookCompatIssue[] {
+  const issues: OutlookCompatIssue[] = [];
+
+  issues.push(contrastIssue('Tekst treści na tle', s.textColor, s.bgColor));
+  issues.push(contrastIssue('Tekst na przycisku', s.buttonTextColor, s.accentColor));
+  issues.push(contrastIssue('Numer wydania w nagłówku', s.accentColor, s.primaryColor));
+  issues.push(contrastIssue('Tekst stopki (biały) na tle stopki', '#ffffff', s.primaryColor));
+
+  const subjectLen = (s.issueNumber || '').trim().length;
+  if (subjectLen === 0) {
+    issues.push({ severity: 'error', message: 'Temat (numer wydania) jest pusty.' });
+  } else if (subjectLen > 60) {
+    issues.push({ severity: 'warning', message: `Temat ma ${subjectLen} znaków — w wielu skrzynkach zostanie obcięty już po ok. 50–60 znakach.` });
+  } else {
+    issues.push({ severity: 'ok', message: `Temat: ${subjectLen} znaków — bezpieczna długość.` });
+  }
+
+  const preheaderLen = (s.preheader || '').trim().length;
+  if (preheaderLen === 0) {
+    issues.push({ severity: 'warning', message: 'Brak preheadera — klient pocztowy pokaże przypadkowy fragment treści maila.' });
+  } else if (preheaderLen > 150) {
+    issues.push({ severity: 'warning', message: `Preheader ma ${preheaderLen} znaków — warto skrócić do ok. 100–130.` });
+  } else if (preheaderLen < 40) {
+    issues.push({ severity: 'warning', message: `Preheader ma ${preheaderLen} znaków — można rozwinąć do ok. 60–130 dla lepszego efektu w skrzynce.` });
+  } else {
+    issues.push({ severity: 'ok', message: `Preheader: ${preheaderLen} znaków — dobra długość.` });
+  }
+
+  return issues;
+}
+
 export function checkOutlookCompat(s: NewsletterState): OutlookCompatIssue[] {
   const issues: OutlookCompatIssue[] = [];
   const images = allImageSources(s);
@@ -94,6 +171,10 @@ export function checkOutlookCompat(s: NewsletterState): OutlookCompatIssue[] {
 
   if (!s.mainImage?.trim()) {
     issues.push({ severity: 'warning', message: 'Brakuje głównego obrazka newslettera.' });
+  }
+
+  if (s.showViewOnline && !s.viewOnlineUrl?.trim()) {
+    issues.push({ severity: 'warning', message: 'Sekcja „Wyświetl online” jest włączona, ale link jest pusty — prowadzi do nikąd. Wpisz adres albo wyłącz sekcję.' });
   }
 
   if (externalImages.length > 0) {
@@ -149,7 +230,7 @@ export function generateEmailHTML(s: NewsletterState): string {
     ? `<table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="min-width:100%;">
         <tr>
           <td align="center" style="padding:15px 20px;">
-            <a href="#" style="font-family:${ff};font-size:12px;line-height:16px;color:#999999;text-decoration:underline;">Wyświetl online</a>
+            <a href="${esc(safeHref(s.viewOnlineUrl))}" style="font-family:${ff};font-size:12px;line-height:16px;color:#999999;text-decoration:underline;">Wyświetl online</a>
           </td>
         </tr>
       </table>`

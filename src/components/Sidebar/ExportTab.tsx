@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import { useMemo } from 'react';
 import type { NewsletterState } from '@/types';
-import { generateMHT, downloadFile, checkOutlookCompat } from '@/utils/emailGenerator';
+import { generateMHT, downloadFile, checkOutlookCompat, checkContentQuality } from '@/utils/emailGenerator';
 import { generateEml } from '@/utils/emlGenerator';
 import { cn } from '@/utils/cn';
 
@@ -28,6 +28,11 @@ export function ExportTab({ state, html, notify, onShowCode, onShowOutlookHelp, 
   const issues = useMemo(() => checkOutlookCompat(state), [state]);
   const hasErrors = issues.some((i) => i.severity === 'error');
   const hasWarnings = issues.some((i) => i.severity === 'warning');
+  const qualityIssues = useMemo(() => checkContentQuality(state), [state]);
+  const qualityHasErrors = qualityIssues.some((i) => i.severity === 'error');
+  const qualityHasWarnings = qualityIssues.some((i) => i.severity === 'warning');
+  const overallHasErrors = hasErrors || qualityHasErrors;
+  const overallHasWarnings = hasWarnings || qualityHasWarnings;
   const safeBaseName = sanitizeFilename(state.issueNumber || 'newsletter');
 
   const exportEml = (draftMode: boolean, externalImageMode: 'keep' | 'remove', suffix: string, successMsg: string) => {
@@ -144,9 +149,9 @@ export function ExportTab({ state, html, notify, onShowCode, onShowOutlookHelp, 
         <StatItem value={sizeKB} label="KB" color="text-[#feed01]" />
         <StatItem value={String(state.articles.length)} label="Artykuły" color="text-[#00d9a5]" />
         <StatItem
-          value={hasErrors ? '⚠️' : hasWarnings ? '⚡' : '✓'}
-          label={hasErrors ? 'Błędy' : hasWarnings ? 'Uwagi' : 'OK'}
-          color={hasErrors ? 'text-red-400' : hasWarnings ? 'text-amber-400' : 'text-emerald-400'}
+          value={overallHasErrors ? '⚠️' : overallHasWarnings ? '⚡' : '✓'}
+          label={overallHasErrors ? 'Błędy' : overallHasWarnings ? 'Uwagi' : 'OK'}
+          color={overallHasErrors ? 'text-red-400' : overallHasWarnings ? 'text-amber-400' : 'text-emerald-400'}
         />
       </div>
 
@@ -167,6 +172,43 @@ export function ExportTab({ state, html, notify, onShowCode, onShowOutlookHelp, 
 
         <div className="max-h-[100px] space-y-0.5 overflow-y-auto">
           {issues.map((issue, i) => (
+            <div key={i} className="flex items-start gap-1 text-[9px]">
+              <span className="mt-0.5 shrink-0">
+                {issue.severity === 'ok' ? '✅' : issue.severity === 'warning' ? '⚡' : '❌'}
+              </span>
+              <span
+                className={cn(
+                  issue.severity === 'ok'
+                    ? 'text-emerald-400'
+                    : issue.severity === 'warning'
+                      ? 'text-amber-400'
+                      : 'text-red-400'
+                )}
+              >
+                {issue.message}
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div
+        className={cn(
+          'rounded-xl border p-2',
+          qualityHasErrors
+            ? 'border-red-500/20 bg-red-500/5'
+            : qualityHasWarnings
+              ? 'border-amber-500/15 bg-amber-500/5'
+              : 'border-emerald-500/15 bg-emerald-500/5'
+        )}
+      >
+        <h4 className="mb-1 flex items-center gap-1 text-[10px] font-bold text-white">
+          <span className="text-[10px]">{qualityHasErrors ? '❌' : qualityHasWarnings ? '⚠️' : '✅'}</span>
+          Dostępność i dobre praktyki
+        </h4>
+
+        <div className="max-h-[140px] space-y-0.5 overflow-y-auto">
+          {qualityIssues.map((issue, i) => (
             <div key={i} className="flex items-start gap-1 text-[9px]">
               <span className="mt-0.5 shrink-0">
                 {issue.severity === 'ok' ? '✅' : issue.severity === 'warning' ? '⚡' : '❌'}

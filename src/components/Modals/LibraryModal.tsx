@@ -1,17 +1,23 @@
 import { useState } from 'react';
 import type { SavedProject, NotificationType } from '@/types';
 import { Modal } from './Modal';
+import { formatBytes } from '@/utils/format';
 
 interface LibraryModalProps {
   onClose: () => void;
   defaultName: string;
   getLibrary: () => SavedProject[];
+  getLibraryStats: () => { count: number; bytes: number };
   saveToLibrary: (name: string) => boolean;
   loadFromLibrary: (id: string) => boolean;
   deleteFromLibrary: (id: string) => void;
   renameLibraryEntry: (id: string, name: string) => boolean;
   notify: (msg: string, type?: NotificationType) => void;
 }
+
+// Przeglądarki nie udostępniają realnego limitu localStorage — to orientacyjny,
+// konserwatywny szacunek (Safari bywa bliżej 5 MB, Chrome/Firefox często więcej).
+const ESTIMATED_QUOTA_BYTES = 5 * 1024 * 1024;
 
 function formatDate(iso: string): string {
   try {
@@ -25,6 +31,7 @@ export function LibraryModal({
   onClose,
   defaultName,
   getLibrary,
+  getLibraryStats,
   saveToLibrary,
   loadFromLibrary,
   deleteFromLibrary,
@@ -32,17 +39,28 @@ export function LibraryModal({
   notify,
 }: LibraryModalProps) {
   const [library, setLibrary] = useState<SavedProject[]>(() => getLibrary());
+  const [stats, setStats] = useState(() => getLibraryStats());
   const [saveName, setSaveName] = useState(defaultName || 'Bez nazwy');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingName, setEditingName] = useState('');
 
-  const refresh = () => setLibrary(getLibrary());
+  const refresh = () => {
+    setLibrary(getLibrary());
+    setStats(getLibraryStats());
+  };
+
+  const usagePercent = Math.min(100, Math.round((stats.bytes / ESTIMATED_QUOTA_BYTES) * 100));
+  const usageColor = usagePercent >= 85 ? 'bg-red-500' : usagePercent >= 60 ? 'bg-amber-500' : 'bg-[#00d9a5]';
 
   const handleSave = () => {
     const ok = saveToLibrary(saveName);
     if (ok) {
       notify(`📚 Projekt „${saveName.trim() || 'Bez nazwy'}” zapisany w bibliotece!`);
       refresh();
+      const updated = getLibraryStats();
+      if (updated.bytes / ESTIMATED_QUOTA_BYTES >= 0.85) {
+        notify('⚠️ Biblioteka zajmuje już większość szacowanego limitu pamięci przeglądarki. Rozważ usunięcie starych projektów.', 'warning');
+      }
     } else {
       notify('❌ Brak miejsca w pamięci przeglądarki. Usuń stare projekty z biblioteki albo użyj mniej lokalnie wgranych obrazów.', 'error');
     }
@@ -80,6 +98,20 @@ export function LibraryModal({
 
   return (
     <Modal title="📚 Biblioteka projektów" onClose={onClose} maxWidth="max-w-2xl">
+      {/* Wykorzystanie pamięci */}
+      <div className="mb-4 rounded-xl border border-white/[0.06] bg-white/[0.02] p-3">
+        <div className="mb-1.5 flex items-center justify-between text-[10px]">
+          <span className="font-medium text-gray-400">Wykorzystanie pamięci przeglądarki</span>
+          <span className="font-bold text-white">{formatBytes(stats.bytes)} <span className="text-gray-500">/ ~5 MB (orientacyjnie)</span></span>
+        </div>
+        <div className="h-1.5 w-full overflow-hidden rounded-full bg-black/30">
+          <div className={`h-full rounded-full transition-all ${usageColor}`} style={{ width: `${usagePercent}%` }} />
+        </div>
+        <p className="mt-1 text-[8px] text-gray-600">
+          {stats.count}/25 zapisanych projektów. Realny limit zależy od przeglądarki — to tylko orientacyjny szacunek.
+        </p>
+      </div>
+
       {/* Zapis bieżącego projektu */}
       <div className="mb-4 rounded-xl border border-[#feed01]/20 bg-[#feed01]/5 p-3">
         <p className="mb-2 text-xs font-bold text-[#feed01]">💾 Zapisz obecny projekt w bibliotece</p>
@@ -169,7 +201,7 @@ export function LibraryModal({
       )}
 
       <p className="mt-4 text-[10px] text-gray-600">
-        Biblioteka jest zapisywana lokalnie w tej przeglądarce (limit {library.length}/25 wpisów). Do przenoszenia projektów między urządzeniami użyj eksportu/importu .json w zakładce Eksport.
+        Do przenoszenia projektów między urządzeniami użyj eksportu/importu .json w zakładce Eksport.
       </p>
     </Modal>
   );

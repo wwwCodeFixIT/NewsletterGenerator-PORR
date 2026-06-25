@@ -13,6 +13,7 @@ export function ContentTab({ state, update }: ContentTabProps) {
       <Section title="Nagłówek" icon="📌" badge="Header">
         <Input label="Numer wydania" value={state.issueNumber} onChange={v => update({ issueNumber: v })} icon="🏷️" />
         <Input label="Preheader (tekst w skrzynce)" value={state.preheader} onChange={v => update({ preheader: v })} placeholder="Podgląd w kliencie email..." icon="👁️" />
+        <Input label="Link do wersji online" value={state.viewOnlineUrl} onChange={v => update({ viewOnlineUrl: v })} type="url" placeholder="https://... (adres hostowanej kopii maila)" icon="🌐" />
         <Input label="Logo (URL)" value={state.logoUrl} onChange={v => update({ logoUrl: v })} type="url" icon="🔗" />
         <ImageUpload label="Lub wgraj logo" currentUrl={state.logoUrl} onUpload={v => update({ logoUrl: v })} />
       </Section>

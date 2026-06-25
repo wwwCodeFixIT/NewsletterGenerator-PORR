@@ -217,6 +217,7 @@ export function App() {
           onClose={() => setShowLibrary(false)}
           defaultName={store.state.issueNumber}
           getLibrary={store.getLibrary}
+          getLibraryStats={store.getLibraryStats}
           saveToLibrary={store.saveToLibrary}
           loadFromLibrary={store.loadFromLibrary}
           deleteFromLibrary={store.deleteFromLibrary}
