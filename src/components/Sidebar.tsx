@@ -1,6 +1,6 @@
 import { useCallback, useRef } from 'react';
 import type { useNewsletterStore } from '@/hooks/useNewsletterStore';
-import type { TabId, NotificationType } from '@/types';
+import type { TabId, NotificationType, SavedProject } from '@/types';
 import { ContentTab } from './Sidebar/ContentTab';
 import { ArticlesTab } from './Sidebar/ArticlesTab';
 import { FeedbackTab } from './Sidebar/FeedbackTab';
@@ -16,6 +16,7 @@ export interface SidebarProps {
   onNewProject: () => void;
   onSaveProject: () => void;
   onShowTemplates: () => void;
+  onShowLibrary: () => void;
   onLoadProjectFromFile: (file: File) => void;
   onShowCode: () => void;
   onShowOutlookHelp: () => void;
@@ -46,13 +47,27 @@ function QuickActionButton({ icon, label, onClick }: { icon: string; label: stri
 }
 
 export function Sidebar(props: SidebarProps) {
-  const { store, activeTab, onTabChange, onNewProject, onSaveProject, onShowTemplates, onLoadProjectFromFile, isOpen, onClose } = props;
+  const {
+    store,
+    activeTab,
+    onTabChange,
+    onNewProject,
+    onSaveProject,
+    onShowTemplates,
+    onShowLibrary,
+    onLoadProjectFromFile,
+    isOpen,
+    onClose,
+  } = props;
   const loadRef = useRef<HTMLInputElement>(null);
-  const recentProjects = store.getRecentProjects();
+  const library = store.getLibrary();
 
-  const handleLoadRecent = useCallback((projectState: typeof store.state) => {
-    store.loadState(projectState);
-    props.notify('Projekt wczytany!');
+  const handleLoadLibraryEntry = useCallback((p: SavedProject) => {
+    if (store.loadFromLibrary(p.id)) {
+      props.notify(`✅ Wczytano projekt „${p.name}”!`);
+    } else {
+      props.notify('❌ Nie udało się wczytać tego projektu.', 'error');
+    }
   }, [store, props]);
 
   const handleOpenProjectFile = useCallback(() => {
@@ -91,24 +106,31 @@ export function Sidebar(props: SidebarProps) {
             />
           </div>
 
-          {/* Recent projects */}
-          {recentProjects.length > 0 && (
-            <div className="rounded-lg border border-white/[0.05] bg-white/[0.02] p-2 mb-2">
-              <h4 className="text-[#feed01] text-[9px] font-bold mb-1 uppercase tracking-wider">📁 Ostatnie projekty</h4>
+          {/* Biblioteka projektów */}
+          <div className="rounded-lg border border-white/[0.05] bg-white/[0.02] p-2 mb-2">
+            <div className="mb-1 flex items-center justify-between">
+              <h4 className="text-[#feed01] text-[9px] font-bold uppercase tracking-wider">📚 Biblioteka</h4>
+              <button onClick={onShowLibrary} className="text-[8px] text-gray-500 hover:text-[#feed01] transition-colors">
+                Zarządzaj →
+              </button>
+            </div>
+            {library.length === 0 ? (
+              <p className="text-[9px] text-gray-600 py-0.5">Brak zapisanych projektów.</p>
+            ) : (
               <div className="space-y-0.5">
-                {recentProjects.slice(0, 3).map((p, i) => (
+                {library.slice(0, 3).map((p) => (
                   <div
-                    key={i}
-                    onClick={() => handleLoadRecent(p.state)}
+                    key={p.id}
+                    onClick={() => handleLoadLibraryEntry(p)}
                     className="flex items-center justify-between px-2 py-1 bg-[#0d1b2a]/60 rounded cursor-pointer hover:bg-[#143e70] transition-colors group"
                   >
                     <span className="text-white/80 text-[10px] truncate flex-1 group-hover:text-white">{p.name}</span>
-                    <span className="text-gray-600 text-[8px] ml-2 flex-shrink-0">{new Date(p.date).toLocaleDateString('pl')}</span>
+                    <span className="text-gray-600 text-[8px] ml-2 flex-shrink-0">{new Date(p.savedAt).toLocaleDateString('pl')}</span>
                   </div>
                 ))}
               </div>
-            </div>
-          )}
+            )}
+          </div>
 
           {/* Tab navigation */}
           <div className="flex bg-[#0d1b2a]/60 rounded-lg overflow-hidden mb-2">
@@ -161,6 +183,7 @@ export function Sidebar(props: SidebarProps) {
               notify={props.notify}
               onShowCode={props.onShowCode}
               onShowOutlookHelp={props.onShowOutlookHelp}
+              onShowLibrary={onShowLibrary}
               loadState={store.loadState}
             />
           )}

@@ -11,6 +11,7 @@ interface ExportTabProps {
   notify: (msg: string, type?: 'success' | 'warning' | 'info' | 'error') => void;
   onShowCode: () => void;
   onShowOutlookHelp: () => void;
+  onShowLibrary: () => void;
   loadState: (data: Partial<NewsletterState>) => void;
 }
 
@@ -21,7 +22,7 @@ function sanitizeFilename(value: string): string {
     .toLowerCase();
 }
 
-export function ExportTab({ state, html, notify, onShowCode, onShowOutlookHelp, loadState }: ExportTabProps) {
+export function ExportTab({ state, html, notify, onShowCode, onShowOutlookHelp, onShowLibrary, loadState }: ExportTabProps) {
   const htmlSize = new Blob([html]).size;
   const sizeKB = (htmlSize / 1024).toFixed(1);
   const issues = useMemo(() => checkOutlookCompat(state), [state]);
@@ -225,11 +226,12 @@ export function ExportTab({ state, html, notify, onShowCode, onShowOutlookHelp, 
 
       <ExportSection icon="💾" title="Projekt" borderColor="border-white/[0.06]" bgColor="bg-white/[0.01]">
         <div className="space-y-1">
+          <ExportBtn onClick={onShowLibrary} icon="📚" label="Biblioteka projektów" variant="green" />
           <ExportBtn onClick={handleExportProject} icon="📤" label="Eksportuj (.json)" variant="ghost" />
           <ExportBtn onClick={handleImportProject} icon="📥" label="Importuj projekt" variant="ghost" />
         </div>
         <p className="mt-1.5 text-[8px] leading-relaxed text-gray-600">
-          Pliki .json pozwalają udostępniać projekty newsletterów między użytkownikami.
+          Biblioteka zapisuje projekty lokalnie w tej przeglądarce. Pliki .json pozwalają udostępniać projekty między użytkownikami lub urządzeniami.
         </p>
       </ExportSection>
     </div>

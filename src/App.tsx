@@ -10,6 +10,7 @@ import { HelpModal } from '@/components/Modals/HelpModal';
 import { CodeModal } from '@/components/Modals/CodeModal';
 import { TemplatesModal } from '@/components/Modals/TemplatesModal';
 import { OutlookHelpModal } from '@/components/Modals/OutlookHelpModal';
+import { LibraryModal } from '@/components/Modals/LibraryModal';
 import type { TabId, DeviceType } from '@/types';
 
 export function App() {
@@ -22,6 +23,7 @@ export function App() {
   const [showCode, setShowCode] = useState(false);
   const [showTemplates, setShowTemplates] = useState(false);
   const [showOutlookHelp, setShowOutlookHelp] = useState(false);
+  const [showLibrary, setShowLibrary] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   // Generowanie HTML jest kosztowne (sklejanie sporej ilości tabel email-safe) —
@@ -185,6 +187,7 @@ export function App() {
           onNewProject={handleNewProject}
           onSaveProject={handleSaveProject}
           onShowTemplates={() => setShowTemplates(true)}
+          onShowLibrary={() => setShowLibrary(true)}
           onLoadProjectFromFile={handleLoadProjectFromFile}
           onShowCode={() => setShowCode(true)}
           onShowOutlookHelp={() => setShowOutlookHelp(true)}
@@ -209,6 +212,18 @@ export function App() {
       {showCode && <CodeModal html={html} onClose={() => setShowCode(false)} onCopy={handleCopyHTML} />}
       {showTemplates && <TemplatesModal onClose={() => setShowTemplates(false)} onLoad={handleLoadTemplate} />}
       {showOutlookHelp && <OutlookHelpModal onClose={() => setShowOutlookHelp(false)} />}
+      {showLibrary && (
+        <LibraryModal
+          onClose={() => setShowLibrary(false)}
+          defaultName={store.state.issueNumber}
+          getLibrary={store.getLibrary}
+          saveToLibrary={store.saveToLibrary}
+          loadFromLibrary={store.loadFromLibrary}
+          deleteFromLibrary={store.deleteFromLibrary}
+          renameLibraryEntry={store.renameLibraryEntry}
+          notify={notify}
+        />
+      )}
     </div>
   );
 }

@@ -75,9 +75,10 @@ export interface NewsletterState {
   nextFeedbackId: number;
 }
 
-export interface ProjectData {
+export interface SavedProject {
+  id: string;
   name: string;
-  date: string;
+  savedAt: string;
   state: NewsletterState;
 }
 

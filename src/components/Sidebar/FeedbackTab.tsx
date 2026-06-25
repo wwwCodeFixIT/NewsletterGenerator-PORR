@@ -1,5 +1,5 @@
 import type { NewsletterState, FeedbackStyle, FeedbackOption } from '@/types';
-import { Input, Toggle, ColorInput, Section } from './FormElements';
+import { Input, Toggle, ColorInput, Section, isLikelyValidUrl } from './FormElements';
 import { cn } from '@/utils/cn';
 
 interface FeedbackTabProps {
@@ -82,7 +82,11 @@ export function FeedbackTab({ state, update, setFeedbackStyle, addFeedbackOption
                 <div>
                   <label className="block text-[7px] text-gray-600 mb-0.5">Link</label>
                   <input type="url" value={o.link} onChange={e => updateFeedbackOption(o.id, { link: e.target.value })}
-                    className="w-full rounded border border-white/[0.06] bg-black/20 px-1 py-1 text-[9px] text-white focus:border-[#feed01]/40 focus:outline-none" />
+                    title={isLikelyValidUrl(o.link) ? undefined : 'Link powinien zaczynać się od https:// (albo użyj # jako placeholdera)'}
+                    className={cn(
+                      'w-full rounded border bg-black/20 px-1 py-1 text-[9px] text-white focus:outline-none',
+                      isLikelyValidUrl(o.link) ? 'border-white/[0.06] focus:border-[#feed01]/40' : 'border-amber-500/50 focus:border-amber-500/60'
+                    )} />
                 </div>
               </div>
               <div className="flex flex-wrap gap-0.5">

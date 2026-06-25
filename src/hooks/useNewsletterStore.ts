@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
-import type { NewsletterState, FeedbackStyle, ProjectData } from '@/types';
+import type { NewsletterState, FeedbackStyle, SavedProject } from '@/types';
 
 const defaultState: NewsletterState = {
   issueNumber: 'Espinacz nr 4/2026',
@@ -56,7 +56,26 @@ const defaultState: NewsletterState = {
 };
 
 const STORAGE_KEY = 'porr_newsletter_current';
-const RECENT_KEY = 'porr_newsletter_recent';
+const LIBRARY_KEY = 'porr_newsletter_library';
+const MAX_LIBRARY_ENTRIES = 25;
+
+function loadLibrary(): SavedProject[] {
+  try {
+    const raw = JSON.parse(localStorage.getItem(LIBRARY_KEY) || '[]');
+    return Array.isArray(raw) ? raw : [];
+  } catch {
+    return [];
+  }
+}
+
+function persistLibrary(library: SavedProject[]): boolean {
+  try {
+    localStorage.setItem(LIBRARY_KEY, JSON.stringify(library));
+    return true;
+  } catch {
+    return false;
+  }
+}
 
 function loadInitialState(): NewsletterState {
   try {
@@ -84,28 +103,15 @@ export function useNewsletterStore() {
     setState(prev => ({ ...prev, [key]: value }));
   }, []);
 
-  // Auto-save effect
+  // Auto-save effect — zapisuje tylko bieżący stan roboczy (kopia zapasowa
+  // na wypadek odświeżenia strony). Biblioteka nazwanych projektów jest
+  // odrębna i w pełni kontrolowana przez użytkownika (saveToLibrary).
   useEffect(() => {
     setSaveStatus('saving');
     if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current);
     autoSaveTimer.current = setTimeout(() => {
       try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-        // Update recent projects
-        let recent: ProjectData[] = [];
-        try {
-          recent = JSON.parse(localStorage.getItem(RECENT_KEY) || '[]');
-        } catch {
-          recent = [];
-        }
-        const entry: ProjectData = {
-          name: state.issueNumber || 'Bez nazwy',
-          date: new Date().toISOString(),
-          state,
-        };
-        const filtered = recent.filter(r => r.name !== entry.name);
-        filtered.unshift(entry);
-        localStorage.setItem(RECENT_KEY, JSON.stringify(filtered.slice(0, 5)));
         setSaveStatus('saved');
       } catch (saveErr) {
         console.error('Save failed:', saveErr);
@@ -242,12 +248,38 @@ export function useNewsletterStore() {
     }));
   }, []);
 
-  const getRecentProjects = useCallback((): ProjectData[] => {
-    try {
-      return JSON.parse(localStorage.getItem(RECENT_KEY) || '[]');
-    } catch {
-      return [];
-    }
+  const getLibrary = useCallback((): SavedProject[] => {
+    return loadLibrary().sort((a, b) => b.savedAt.localeCompare(a.savedAt));
+  }, []);
+
+  const saveToLibrary = useCallback((name: string): boolean => {
+    const library = loadLibrary();
+    const entry: SavedProject = {
+      id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+      name: name.trim() || 'Bez nazwy',
+      savedAt: new Date().toISOString(),
+      state,
+    };
+    const updated = [entry, ...library].slice(0, MAX_LIBRARY_ENTRIES);
+    return persistLibrary(updated);
+  }, [state]);
+
+  const loadFromLibrary = useCallback((id: string): boolean => {
+    const entry = loadLibrary().find(p => p.id === id);
+    if (!entry) return false;
+    loadState(entry.state);
+    return true;
+  }, [loadState]);
+
+  const deleteFromLibrary = useCallback((id: string) => {
+    persistLibrary(loadLibrary().filter(p => p.id !== id));
+  }, []);
+
+  const renameLibraryEntry = useCallback((id: string, newName: string): boolean => {
+    const trimmed = newName.trim();
+    if (!trimmed) return false;
+    const library = loadLibrary().map(p => (p.id === id ? { ...p, name: trimmed } : p));
+    return persistLibrary(library);
   }, []);
 
   return {
@@ -266,6 +298,10 @@ export function useNewsletterStore() {
     addFeedbackOption,
     removeFeedbackOption,
     updateFeedbackOption,
-    getRecentProjects,
+    getLibrary,
+    saveToLibrary,
+    loadFromLibrary,
+    deleteFromLibrary,
+    renameLibraryEntry,
   };
 }
