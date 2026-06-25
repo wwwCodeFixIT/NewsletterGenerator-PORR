@@ -1,51 +1,52 @@
-# Korpus
+# Generator Newslettera PORR
 
-Frontend agenta RAG do dokumentacji projektowej PORR. React + TypeScript +
-Vite. Dwa widoki: czat z dokumentami (streaming odpowiedzi, źródła, historia
-rozmów) i file manager (upload, foldery, status indeksowania).
+Aplikacja webowa (React + TypeScript + Vite) do tworzenia, stylowania i
+eksportowania firmowych newsletterów PORR jako gotowych do wysyłki plików
+HTML / EML / MHT, kompatybilnych z różnymi wersjami Outlooka. Działa w 100%
+w przeglądarce — bez backendu, bez konta, bez wysyłania treści gdziekolwiek.
 
 ## Szybki start
 
 ```bash
 npm install
-cp .env.example .env   # ustaw VITE_API_URL pod swój backend
 npm run dev
 ```
 
-Bez żadnego backendu projekt też się odpali — ustaw w `.env`:
-
-```env
-VITE_USE_MOCK_API=true
-VITE_USE_MOCK_STREAM=true
-```
-
-Wtedy czat, dokumenty i foldery działają w pamięci/localStorage przeglądarki,
-ze sztucznym opóźnieniem symulującym realny stream.
-
 ## Co tu jest
 
-- **Czat** (`src/features/chat/`) — historia rozmów w IndexedDB (przeglądarka,
-  nie backend), streaming odpowiedzi SSE z obsługą Stopu, panel źródeł,
-  inline retry, licznik znaków.
-- **Dokumenty** (`src/features/documents/`) — upload, foldery, filtrowanie po
-  statusie (gotowe / indeksowanie / błąd), podgląd szczegółów dokumentu.
-- **Ustawienia** (`src/features/ui/settings/`) — motyw (jasny/ciemny/system),
-  gęstość layoutu, kontrast, rozmiar fontu. Marka PORR (granat `#143e6f`,
-  żółć `#ffed00`) jest stała i nie podlega personalizacji.
-- **Style** (`src/styles/theme.css`) — jeden plik, `@layer tokens, base,
-  components, density, accessibility`. Każda zmienna ma jedną definicję na
-  motyw.
+- **Treść** — nagłówek, artykuł główny, sekcja wideo, stopka.
+- **Artykuły** — dowolna liczba artykułów z możliwością zmiany kolejności,
+  duplikowania i edycji inline.
+- **Feedback** — konfigurowalna sekcja oceny newslettera (emoji / gwiazdki /
+  kciuki) z linkiem do pełnej ankiety.
+- **Styl** — kolory, czcionka (bezpieczna dla Outlooka), gotowe schematy
+  kolorystyczne, włączanie/wyłączanie sekcji.
+- **Eksport** — licznik kompatybilności z Outlookiem, eksport do:
+  - `.EML` (standard / „Outlook Safe” — bez zewnętrznych obrazów, lokalne
+    obrazy osadzone jako CID),
+  - `.EML draft` (do edycji w klasycznym Outlooku przed wysyłką),
+  - `.MHT`, `.HTML`, kopiowanie do schowka (np. pod „Moje szablony” w nowym
+    Outlooku) oraz eksport/import całego projektu jako `.json`.
 
-## Kontrakt z backendem
+Projekt zapisuje się automatycznie w `localStorage` przeglądarki (z listą
+ostatnich projektów). Skróty klawiszowe: `Ctrl+S` zapisz, `Ctrl+E` eksport
+HTML, `Ctrl+P` podgląd w nowej karcie, `Ctrl+N` nowy projekt.
 
-Backend RAG jest **bezstanowy** — nie przechowuje historii rozmów, tylko
-dokumenty/foldery. Pełny opis endpointów, formatu eventów SSE i wariantu
-alternatywnego (szybki FastAPI mock) jest w `kontrakt-api.md` w tym
-repozytorium (jeśli go tu nie widzisz, zapytaj osobę, która Ci go przekazała).
+## Struktura
 
-Skrót: `POST {VITE_API_URL}{VITE_RAG_STREAM_PATH}`, SSE z eventami
-`message.delta` / `message.sources` / `message.done` / `message.error`. Pełna
-specyfikacja zmiennych środowiskowych jest skomentowana w `.env.example`.
+```
+src/
+  App.tsx                  — główny komponent, stan modali, skróty klawiszowe
+  components/
+    TopBar.tsx, Preview.tsx, Notifications.tsx
+    Sidebar.tsx             — orchestrator zakładek panelu bocznego
+    Sidebar/                — poszczególne zakładki (Content/Articles/
+                              Feedback/Style/Export) + wspólne pola formularzy
+    Modals/                 — pomoc, podgląd kodu, szablony, instrukcja Outlook
+  hooks/useNewsletterStore.ts — cały stan newslettera + auto-save
+  utils/emailGenerator.ts     — generator HTML (tabele, VML, MSO conditionals)
+  utils/emlGenerator.ts       — generator pliku .EML (CID, base64, drafty)
+```
 
 ## Komendy
 
@@ -58,6 +59,14 @@ npm run preview  # podgląd zbudowanej wersji produkcyjnej
 
 ## Stack
 
-React 19, TypeScript, Vite, IndexedDB (natywne, bez biblioteki), CSS custom
-properties (bez frameworka CSS) — bez dodatkowych zależności runtime poza
-React/ReactDOM.
+React 19, TypeScript, Vite, Tailwind CSS v4 — bez backendu i bez zależności
+runtime poza React/ReactDOM, clsx i tailwind-merge.
+
+## Uwaga dot. historii repozytorium
+
+W tym repozytorium leżał wcześniej również drugi, niezależny projekt — czat
+RAG do dokumentacji PORR („Korpus”, `src/app/`, `src/features/`). Nie był on
+podłączony jako aktywna aplikacja (entry point wskazywał właśnie na niego, a
+Generator Newslettera był odłączony) i pozostaje na miejscu nietknięty, ale
+poza ścieżką budowania UI tego projektu. Opis tamtego projektu znajduje się
+w `README-korpus-chat-archiwum.md` oraz `kontrakt-api.md`.

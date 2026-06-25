@@ -1,8 +1,7 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNewsletterStore } from '@/hooks/useNewsletterStore';
 import { useNotification } from '@/hooks/useNotification';
-import { generateEmailHTML } from '@/utils/emailGenerator';
-import { generateEml } from '@/utils/emlGenerator';
+import { generateEmailHTML, downloadFile } from '@/utils/emailGenerator';
 import { TopBar } from '@/components/TopBar';
 import { Sidebar } from '@/components/Sidebar';
 import { Preview } from '@/components/Preview';
@@ -12,17 +11,6 @@ import { CodeModal } from '@/components/Modals/CodeModal';
 import { TemplatesModal } from '@/components/Modals/TemplatesModal';
 import { OutlookHelpModal } from '@/components/Modals/OutlookHelpModal';
 import type { TabId, DeviceType } from '@/types';
-
-function downloadFile(content: string, filename: string, type: string, addBom = false) {
-  const blob = new Blob([addBom ? '\uFEFF' + content : content], { type });
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = filename;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(a.href);
-}
 
 export function App() {
   const store = useNewsletterStore();
@@ -36,79 +24,24 @@ export function App() {
   const [showOutlookHelp, setShowOutlookHelp] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  const html = generateEmailHTML(store.state);
+  // Generowanie HTML jest kosztowne (sklejanie sporej ilości tabel email-safe) —
+  // memoizujemy, żeby nie liczyć go na nowo przy każdym renderze (np. każdym
+  // keystroke w polu tekstowym), tylko gdy faktycznie zmienia się stan newslettera.
+  const html = useMemo(() => generateEmailHTML(store.state), [store.state]);
 
   const handleTabChange = useCallback((tab: TabId) => {
     setActiveTab(tab);
   }, []);
 
   const handleExportHTML = useCallback(() => {
-  downloadFile(html, 'newsletter.html', 'text/html;charset=utf-8', true);
-  notify('✅ HTML pobrany!');
-}, [html, notify]);
-
-  const handleExportEML = useCallback(() => {
-  const eml = generateEml(html, store.state, { draftMode: false, externalImageMode: 'keep' });
-  downloadFile(eml, 'newsletter.eml', 'message/rfc822');
-  notify('📧 EML pobrany! Wersja pod nowy Outlook.', 'info');
-}, [html, store.state, notify]);
-
-  const handleExportEMLDraft = useCallback(() => {
-    const eml = generateEml(html, store.state, { draftMode: true, externalImageMode: 'keep' });
-    downloadFile(eml, 'newsletter-draft.eml', 'message/rfc822');
-    notify('📧 EML draft pobrany! Wersja pod klasyczny Outlook.', 'info');
-  }, [html, store.state, notify]);
-
-  const handleExportEMLSafe = useCallback(() => {
-    const eml = generateEml(html, store.state, { draftMode: false, externalImageMode: 'remove' });
-    downloadFile(eml, 'newsletter-outlook-safe.eml', 'message/rfc822');
-    notify('🛡️ EML Outlook Safe pobrany! Zewnętrzne obrazy zostały pominięte, lokalne są osadzone jako CID.', 'info');
-  }, [html, store.state, notify]);
-
-  const handleExportEMLDraftSafe = useCallback(() => {
-    const eml = generateEml(html, store.state, { draftMode: true, externalImageMode: 'remove' });
-    downloadFile(eml, 'newsletter-draft-outlook-safe.eml', 'message/rfc822');
-    notify('🛡️ EML draft Outlook Safe pobrany! Lokalnie wgrane obrazy zostają, zewnętrzne są pomijane.', 'info');
-  }, [html, store.state, notify]);
-
-  const handleExportMHT = useCallback(() => {
-  const boundary = '----=_NextPart_' + Date.now();
-  const mht = [
-    'From: <PORR Newsletter Generator>',
-    `Subject: ${store.state.issueNumber}`,
-    'MIME-Version: 1.0',
-    `Content-Type: multipart/related; boundary="${boundary}"; type="text/html"`,
-    '',
-    `--${boundary}`,
-    'Content-Type: text/html; charset="utf-8"',
-    'Content-Transfer-Encoding: 8bit',
-    'Content-Location: file:///newsletter.html',
-    '',
-    html,
-    '',
-    `--${boundary}--`,
-  ].join('\r\n');
-
-  downloadFile(mht, 'newsletter.mht', 'message/rfc822');
-  notify('📄 MHT pobrany!');
-}, [html, store.state.issueNumber, notify]);
+    downloadFile(html, 'newsletter.html', 'text/html;charset=utf-8', true);
+    notify('✅ HTML pobrany!');
+  }, [html, notify]);
 
   const handleCopyHTML = useCallback(() => {
     navigator.clipboard.writeText(html)
       .then(() => notify('📋 HTML skopiowany do schowka!'))
       .catch(() => notify('❌ Nie udało się skopiować HTML. Sprawdź uprawnienia schowka.', 'error'));
-  }, [html, notify]);
-
-  const handleCopyForNewOutlook = useCallback(() => {
-    navigator.clipboard.writeText(html)
-      .then(() => notify('📋 Skopiowano! Wklej do "Moje szablony" w Outlook.', 'info'))
-      .catch(() => notify('❌ Nie udało się skopiować kodu dla Outlooka.', 'error'));
-  }, [html, notify]);
-
-  const handleCopyAsSignature = useCallback(() => {
-    navigator.clipboard.writeText(html)
-      .then(() => notify('✍️ Skopiowano! Wklej jako nowy podpis w ustawieniach.', 'info'))
-      .catch(() => notify('❌ Nie udało się skopiować podpisu.', 'error'));
   }, [html, notify]);
 
   const handleOpenInNewTab = useCallback(() => {
@@ -118,24 +51,13 @@ export function App() {
   }, [html]);
 
   const handleSaveProject = useCallback(() => {
-  try {
-    localStorage.setItem('porr_newsletter_current', JSON.stringify(store.state));
-    notify('💾 Projekt zapisany lokalnie!');
-  } catch {
-    notify('❌ Nie udało się zapisać projektu lokalnie.', 'error');
-  }
-}, [notify, store.state]);
-
-  const handleSaveProjectToFile = useCallback(() => {
-    const data = JSON.stringify(store.state, null, 2);
-    downloadFile(
-      data,
-      `newsletter-${store.state.issueNumber.replace(/[^a-z0-9-_]+/gi, '-').replace(/^-+|-+$/g, '') || 'projekt'}.json`,
-      'application/json',
-      true
-    );
-    notify('📦 Projekt wyeksportowany do pliku!');
-  }, [store.state, notify]);
+    try {
+      localStorage.setItem('porr_newsletter_current', JSON.stringify(store.state));
+      notify('💾 Projekt zapisany lokalnie!');
+    } catch {
+      notify('❌ Nie udało się zapisać projektu lokalnie.', 'error');
+    }
+  }, [notify, store.state]);
 
   const handleLoadProjectFromFile = useCallback((file: File) => {
     const reader = new FileReader();
@@ -166,8 +88,18 @@ export function App() {
   }, [store, notify]);
 
   const handleLoadTemplate = useCallback((type: string) => {
-    if (type === 'empty') {
+    if (type === 'default') {
+      // "Espinacz Standard" = pełny domyślny zestaw (4 artykuły, wideo, feedback).
+      store.resetState();
+    } else if (type === 'empty') {
+      // Prawdziwie pusty szablon — czysta karta, nie tylko wyczyszczona lista artykułów.
       store.update({
+        issueNumber: 'Nowy newsletter',
+        preheader: '',
+        mainTitle: '',
+        mainDescription: '',
+        mainImage: '',
+        mainLink: '',
         articles: [],
         currentArticleId: null,
         showVideo: false,
@@ -254,20 +186,10 @@ export function App() {
           onSaveProject={handleSaveProject}
           onShowTemplates={() => setShowTemplates(true)}
           onLoadProjectFromFile={handleLoadProjectFromFile}
-          onExportHTML={handleExportHTML}
-          onExportEML={handleExportEML}
-          onExportEMLDraft={handleExportEMLDraft}
-          onExportEMLSafe={handleExportEMLSafe}
-          onExportEMLDraftSafe={handleExportEMLDraftSafe}
-          onExportMHT={handleExportMHT}
-          onCopyHTML={handleCopyHTML}
-          onCopyForNewOutlook={handleCopyForNewOutlook}
-          onCopyAsSignature={handleCopyAsSignature}
           onShowCode={() => setShowCode(true)}
-          onOpenInNewTab={handleOpenInNewTab}
-          onSaveProjectToFile={handleSaveProjectToFile}
           onShowOutlookHelp={() => setShowOutlookHelp(true)}
           notify={notify}
+          html={html}
           isOpen={sidebarOpen}
           onClose={() => setSidebarOpen(false)}
         />

@@ -8,11 +8,12 @@ interface ArticlesTabProps {
   update: (partial: Partial<NewsletterState>) => void;
   addArticle: () => void;
   deleteArticle: (id: number) => void;
+  duplicateArticle: (id: number) => void;
   moveArticle: (id: number, dir: -1 | 1) => void;
   updateArticle: (id: number, partial: Partial<Article>) => void;
 }
 
-export function ArticlesTab({ state, update, addArticle, deleteArticle, moveArticle, updateArticle }: ArticlesTabProps) {
+export function ArticlesTab({ state, update, addArticle, deleteArticle, duplicateArticle, moveArticle, updateArticle }: ArticlesTabProps) {
   const current = state.articles.find(a => a.id === state.currentArticleId);
 
   return (
@@ -50,6 +51,8 @@ export function ArticlesTab({ state, update, addArticle, deleteArticle, moveArti
                   className="rounded p-0.5 text-[9px] text-gray-500 hover:bg-white/10 hover:text-white">▲</button>
                 <button onClick={e => { e.stopPropagation(); moveArticle(a.id, 1); }}
                   className="rounded p-0.5 text-[9px] text-gray-500 hover:bg-white/10 hover:text-white">▼</button>
+                <button onClick={e => { e.stopPropagation(); duplicateArticle(a.id); }}
+                  className="rounded p-0.5 text-[9px] text-gray-500 hover:bg-white/10 hover:text-white" title="Duplikuj">⧉</button>
                 <button onClick={e => { e.stopPropagation(); if (confirm('Usunąć artykuł?')) deleteArticle(a.id); }}
                   className="rounded p-0.5 text-[9px] text-gray-500 hover:bg-red-500/20 hover:text-red-400">✕</button>
               </div>

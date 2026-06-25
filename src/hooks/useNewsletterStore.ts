@@ -95,7 +95,7 @@ export function useNewsletterStore() {
         let recent: ProjectData[] = [];
         try {
           recent = JSON.parse(localStorage.getItem(RECENT_KEY) || '[]');
-        } catch (_parseErr) {
+        } catch {
           recent = [];
         }
         const entry: ProjectData = {
@@ -114,8 +114,24 @@ export function useNewsletterStore() {
     return () => { if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current); };
   }, [state]);
 
-  const loadState = useCallback((newState: NewsletterState) => {
-    setState({ ...defaultState, ...newState });
+  const loadState = useCallback((newState: Partial<NewsletterState>) => {
+    const merged: NewsletterState = { ...defaultState, ...newState };
+
+    // Importowany plik .json może być niepełny lub uszkodzony — zabezpieczamy
+    // pola, na których dalszy kod robi .map/.find, żeby import nigdy nie ubił appki.
+    merged.articles = Array.isArray(merged.articles) ? merged.articles : defaultState.articles;
+    merged.feedbackOptions = Array.isArray(merged.feedbackOptions) && merged.feedbackOptions.length >= 2
+      ? merged.feedbackOptions
+      : defaultState.feedbackOptions;
+
+    const maxArticleId = merged.articles.reduce((max, a) => Math.max(max, Number(a?.id) || 0), 0);
+    const maxFeedbackId = merged.feedbackOptions.reduce((max, o) => Math.max(max, Number(o?.id) || 0), 0);
+    merged.nextId = Number.isFinite(merged.nextId) && merged.nextId > maxArticleId ? merged.nextId : maxArticleId + 1;
+    merged.nextFeedbackId = Number.isFinite(merged.nextFeedbackId) && merged.nextFeedbackId > maxFeedbackId
+      ? merged.nextFeedbackId
+      : maxFeedbackId + 1;
+
+    setState(merged);
   }, []);
 
   const resetState = useCallback(() => {
@@ -148,6 +164,23 @@ export function useNewsletterStore() {
       articles: prev.articles.filter(a => a.id !== id),
       currentArticleId: prev.currentArticleId === id ? null : prev.currentArticleId,
     }));
+  }, []);
+
+  const duplicateArticle = useCallback((id: number) => {
+    setState(prev => {
+      const idx = prev.articles.findIndex(a => a.id === id);
+      if (idx === -1) return prev;
+      const original = prev.articles[idx];
+      const copy = { ...original, id: prev.nextId, title: `${original.title} (kopia)` };
+      const newArticles = [...prev.articles];
+      newArticles.splice(idx + 1, 0, copy);
+      return {
+        ...prev,
+        articles: newArticles,
+        nextId: prev.nextId + 1,
+        currentArticleId: copy.id,
+      };
+    });
   }, []);
 
   const updateArticle = useCallback((id: number, data: Partial<{ title: string; description: string; image: string; link: string }>) => {
@@ -212,7 +245,7 @@ export function useNewsletterStore() {
   const getRecentProjects = useCallback((): ProjectData[] => {
     try {
       return JSON.parse(localStorage.getItem(RECENT_KEY) || '[]');
-    } catch (_err) {
+    } catch {
       return [];
     }
   }, []);
@@ -226,6 +259,7 @@ export function useNewsletterStore() {
     resetState,
     addArticle,
     removeArticle,
+    duplicateArticle,
     updateArticle,
     moveArticle,
     setFeedbackStyle,
