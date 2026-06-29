@@ -52,6 +52,39 @@ function vmlButton(
 <!--<![endif]-->`;
 }
 
+
+function hasUsableHref(href?: string): boolean {
+  const value = (href || '').trim();
+  return Boolean(value && value !== '#');
+}
+
+function dualReadButtons(
+  plHref: string,
+  enHref: string | undefined,
+  bgColor: string,
+  textColor: string,
+  fontFamily: string,
+  singleWidth: number = 150,
+  dualWidth: number = 130,
+  height: number = 40
+): string {
+  if (!hasUsableHref(enHref)) {
+    return vmlButton(plHref, 'Czytaj dalej', bgColor, textColor, fontFamily, singleWidth, height);
+  }
+
+  return `<table role="presentation" border="0" cellpadding="0" cellspacing="0" style="border-collapse:collapse;">
+  <tr>
+    <td align="left" valign="top" style="padding:0;">
+      ${vmlButton(plHref, 'Czytaj dalej', bgColor, textColor, fontFamily, dualWidth, height)}
+    </td>
+    <td width="10" style="width:10px;font-size:1px;line-height:1px;">&nbsp;</td>
+    <td align="left" valign="top" style="padding:0;">
+      ${vmlButton(enHref || '#', 'Read more', bgColor, textColor, fontFamily, dualWidth, height)}
+    </td>
+  </tr>
+</table>`;
+}
+
 function dataUrlByteSize(value: string): number {
   if (!value?.startsWith('data:')) return 0;
   const base64 = value.split(',')[1] || '';
@@ -81,83 +114,6 @@ function isExternalImage(src: string): boolean {
   return /^https?:\/\//i.test(src || '');
 }
 
-// ===== WCAG: kontrast kolorów =====
-
-function hexToRgb(hex: string): [number, number, number] | null {
-  const clean = (hex || '').replace('#', '').trim();
-  const full = clean.length === 3 ? clean.split('').map((c) => c + c).join('') : clean;
-  if (!/^[0-9a-f]{6}$/i.test(full)) return null;
-  const num = parseInt(full, 16);
-  return [(num >> 16) & 255, (num >> 8) & 255, num & 255];
-}
-
-function relativeLuminance([r, g, b]: [number, number, number]): number {
-  const [rs, gs, bs] = [r, g, b].map((v) => {
-    const c = v / 255;
-    return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
-  });
-  return 0.2126 * rs + 0.7152 * gs + 0.0722 * bs;
-}
-
-function contrastRatio(hex1: string, hex2: string): number | null {
-  const rgb1 = hexToRgb(hex1);
-  const rgb2 = hexToRgb(hex2);
-  if (!rgb1 || !rgb2) return null;
-  const l1 = relativeLuminance(rgb1);
-  const l2 = relativeLuminance(rgb2);
-  const lighter = Math.max(l1, l2);
-  const darker = Math.min(l1, l2);
-  return (lighter + 0.05) / (darker + 0.05);
-}
-
-function contrastIssue(label: string, fg: string, bg: string): OutlookCompatIssue {
-  const ratio = contrastRatio(fg, bg);
-  if (ratio === null) {
-    return { severity: 'warning', message: `${label}: nie można sprawdzić kontrastu (nieprawidłowy format koloru).` };
-  }
-  const rounded = ratio.toFixed(1);
-  if (ratio >= 4.5) {
-    return { severity: 'ok', message: `${label}: kontrast ${rounded}:1 — zgodne z WCAG AA.` };
-  }
-  if (ratio >= 3) {
-    return { severity: 'warning', message: `${label}: kontrast ${rounded}:1 — czytelne, ale poniżej zalecanych 4.5:1.` };
-  }
-  return { severity: 'error', message: `${label}: kontrast ${rounded}:1 — prawdopodobnie nieczytelne, popraw kolory.` };
-}
-
-// ===== Dobre praktyki: temat, preheader, dostępność kolorów =====
-
-export function checkContentQuality(s: NewsletterState): OutlookCompatIssue[] {
-  const issues: OutlookCompatIssue[] = [];
-
-  issues.push(contrastIssue('Tekst treści na tle', s.textColor, s.bgColor));
-  issues.push(contrastIssue('Tekst na przycisku', s.buttonTextColor, s.accentColor));
-  issues.push(contrastIssue('Numer wydania w nagłówku', s.accentColor, s.primaryColor));
-  issues.push(contrastIssue('Tekst stopki (biały) na tle stopki', '#ffffff', s.primaryColor));
-
-  const subjectLen = (s.issueNumber || '').trim().length;
-  if (subjectLen === 0) {
-    issues.push({ severity: 'error', message: 'Temat (numer wydania) jest pusty.' });
-  } else if (subjectLen > 60) {
-    issues.push({ severity: 'warning', message: `Temat ma ${subjectLen} znaków — w wielu skrzynkach zostanie obcięty już po ok. 50–60 znakach.` });
-  } else {
-    issues.push({ severity: 'ok', message: `Temat: ${subjectLen} znaków — bezpieczna długość.` });
-  }
-
-  const preheaderLen = (s.preheader || '').trim().length;
-  if (preheaderLen === 0) {
-    issues.push({ severity: 'warning', message: 'Brak preheadera — klient pocztowy pokaże przypadkowy fragment treści maila.' });
-  } else if (preheaderLen > 150) {
-    issues.push({ severity: 'warning', message: `Preheader ma ${preheaderLen} znaków — warto skrócić do ok. 100–130.` });
-  } else if (preheaderLen < 40) {
-    issues.push({ severity: 'warning', message: `Preheader ma ${preheaderLen} znaków — można rozwinąć do ok. 60–130 dla lepszego efektu w skrzynce.` });
-  } else {
-    issues.push({ severity: 'ok', message: `Preheader: ${preheaderLen} znaków — dobra długość.` });
-  }
-
-  return issues;
-}
-
 export function checkOutlookCompat(s: NewsletterState): OutlookCompatIssue[] {
   const issues: OutlookCompatIssue[] = [];
   const images = allImageSources(s);
@@ -173,21 +129,17 @@ export function checkOutlookCompat(s: NewsletterState): OutlookCompatIssue[] {
     issues.push({ severity: 'warning', message: 'Brakuje głównego obrazka newslettera.' });
   }
 
-  if (s.showViewOnline && !s.viewOnlineUrl?.trim()) {
-    issues.push({ severity: 'warning', message: 'Sekcja „Wyświetl online” jest włączona, ale link jest pusty — prowadzi do nikąd. Wpisz adres albo wyłącz sekcję.' });
-  }
-
   if (externalImages.length > 0) {
     issues.push({
       severity: 'warning',
-      message: `Wykryto ${externalImages.length} obraz(ów) zewnętrznych. Outlook może pokazać pasek „Kliknij, aby pobrać obrazy”. Użyj eksportu Outlook Safe albo wgraj obrazy lokalnie.`,
+      message: `Wykryto ${externalImages.length} obraz(ów) zewnętrznych. Outlook może pokazać pasek „Kliknij, aby pobrać obrazy”. To normalne zabezpieczenie Outlooka.`,
     });
   }
 
   if (s.showSocial) {
     issues.push({
       severity: 'warning',
-      message: 'Ikony social media są zewnętrzne. W trybie Outlook Safe zostaną pominięte, żeby ograniczyć blokadę pobierania obrazów.',
+      message: 'Ikony social media są zewnętrzne, więc Outlook może zablokować ich automatyczne pobranie.',
     });
   }
 
@@ -196,6 +148,12 @@ export function checkOutlookCompat(s: NewsletterState): OutlookCompatIssue[] {
       severity: localImagesSize > 8 * 1024 * 1024 ? 'error' : 'ok',
       message: `Wykryto ${localImages.length} lokalnie wgrany/e obraz(y). Eksport .EML osadzi je jako CID inline attachments.`,
     });
+  }
+
+  const englishLinks = Number(Boolean(s.mainLinkEn?.trim())) + Number(Boolean(s.videoReadMoreEn?.trim())) + s.articles.filter((article) => article.linkEn?.trim()).length;
+
+  if (englishLinks > 0) {
+    issues.push({ severity: 'ok', message: `Wykryto ${englishLinks} link(ów) EN. Dla tych sekcji zostanie dodany przycisk „Read more”.` });
   }
 
   if (s.articles.length > 8) {
@@ -230,7 +188,7 @@ export function generateEmailHTML(s: NewsletterState): string {
     ? `<table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="min-width:100%;">
         <tr>
           <td align="center" style="padding:15px 20px;">
-            <a href="${esc(safeHref(s.viewOnlineUrl))}" style="font-family:${ff};font-size:12px;line-height:16px;color:#999999;text-decoration:underline;">Wyświetl online</a>
+            <a href="#" style="font-family:${ff};font-size:12px;line-height:16px;color:#999999;text-decoration:underline;">Wyświetl online</a>
           </td>
         </tr>
       </table>`
@@ -277,7 +235,7 @@ export function generateEmailHTML(s: NewsletterState): string {
   </tr>
   <tr>
     <td style="padding:10px 20px 25px 20px;">
-      ${vmlButton(s.mainLink, 'Czytaj więcej', ac, btc, ff)}
+      ${dualReadButtons(s.mainLink, s.mainLinkEn, ac, btc, ff, 150, 150, 40)}
     </td>
   </tr>
 </table>`;
@@ -322,7 +280,7 @@ export function generateEmailHTML(s: NewsletterState): string {
             <p style="margin:0;padding:0 0 15px 0;font-family:${ff};font-size:14px;color:${tc};line-height:20px;mso-line-height-rule:exactly;">
               ${esc(a.description)}
             </p>
-            ${vmlButton(a.link, 'Czytaj więcej', ac, btc, ff, 130, 36)}
+            ${dualReadButtons(a.link, a.linkEn, ac, btc, ff, 130, 130, 36)}
           </td>
         </tr>
       </table>
@@ -360,7 +318,7 @@ export function generateEmailHTML(s: NewsletterState): string {
       <p style="margin:0;padding:0 0 15px 0;font-family:${ff};font-size:14px;color:${tc};line-height:20px;mso-line-height-rule:exactly;">
         ${esc(s.videoDescription)}
       </p>
-      ${vmlButton(s.videoReadMore, 'Czytaj więcej', ac, btc, ff)}
+      ${dualReadButtons(s.videoReadMore, s.videoReadMoreEn, ac, btc, ff, 150, 150, 40)}
     </td>
   </tr>
 </table>` : '';

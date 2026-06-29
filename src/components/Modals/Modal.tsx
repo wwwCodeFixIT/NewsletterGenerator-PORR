@@ -1,4 +1,4 @@
-import { useEffect, type ReactNode } from 'react';
+import type { ReactNode } from 'react';
 
 interface ModalProps {
   title: string;
@@ -8,14 +8,6 @@ interface ModalProps {
 }
 
 export function Modal({ title, onClose, children, maxWidth = 'max-w-3xl' }: ModalProps) {
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-    };
-    document.addEventListener('keydown', handler);
-    return () => document.removeEventListener('keydown', handler);
-  }, [onClose]);
-
   return (
     <div
       className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[1000] flex items-center justify-center p-3 md:p-6 animate-fade-in"
@@ -27,7 +19,6 @@ export function Modal({ title, onClose, children, maxWidth = 'max-w-3xl' }: Moda
           <h3 className="text-[#feed01] text-base font-bold">{title}</h3>
           <button
             onClick={onClose}
-            aria-label="Zamknij"
             className="text-gray-400 hover:text-[#feed01] text-xl w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white/5 transition-colors"
           >
             ✕

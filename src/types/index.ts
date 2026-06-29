@@ -3,7 +3,10 @@ export interface Article {
   title: string;
   description: string;
   image: string;
+  /** Polish/news source URL used by the PL CTA button. */
   link: string;
+  /** Optional English version URL. When set, newsletter renders an extra "Read more" button. */
+  linkEn?: string;
 }
 
 export interface FeedbackOption {
@@ -20,13 +23,14 @@ export interface NewsletterState {
   issueNumber: string;
   preheader: string;
   logoUrl: string;
-  viewOnlineUrl: string;
 
   // Main article
   mainTitle: string;
   mainDescription: string;
   mainImage: string;
   mainLink: string;
+  /** Optional English version URL for the main article. */
+  mainLinkEn?: string;
 
   // Video
   videoThumbnail: string;
@@ -34,6 +38,8 @@ export interface NewsletterState {
   videoTitle: string;
   videoDescription: string;
   videoReadMore: string;
+  /** Optional English version URL for the video/news CTA. */
+  videoReadMoreEn?: string;
 
   // Footer
   footerTitle: string;
@@ -76,10 +82,9 @@ export interface NewsletterState {
   nextFeedbackId: number;
 }
 
-export interface SavedProject {
-  id: string;
+export interface ProjectData {
   name: string;
-  savedAt: string;
+  date: string;
   state: NewsletterState;
 }
 

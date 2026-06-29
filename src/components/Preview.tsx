@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import type { DeviceType } from '@/types';
 
 interface PreviewProps {
@@ -18,7 +18,6 @@ const devices: { id: DeviceType; icon: string; label: string; size: string }[] =
 
 export function Preview({ html, activeDevice, previewWidth, onDeviceChange, onWidthChange }: PreviewProps) {
   const iframeRef = useRef<HTMLIFrameElement>(null);
-  const [contentHeight, setContentHeight] = useState(600);
 
   useEffect(() => {
     const iframe = iframeRef.current;
@@ -28,22 +27,10 @@ export function Preview({ html, activeDevice, previewWidth, onDeviceChange, onWi
     doc.open();
     doc.write(html);
     doc.close();
-
-    // Skalujemy wysokość ramki do realnej treści, żeby uniknąć pustego
-    // miejsca pod krótkim newsletterem albo wewnętrznego scrolla przy długim.
-    // Obrazy dociągają się asynchronicznie, więc mierzymy dwukrotnie.
-    const measure = () => {
-      const h = doc.documentElement?.scrollHeight || doc.body?.scrollHeight || 0;
-      if (h > 0) setContentHeight(h);
-    };
-    measure();
-    const t = window.setTimeout(measure, 350);
-    return () => window.clearTimeout(t);
   }, [html]);
 
   const deviceType = activeDevice.startsWith('mobile') ? 'mobile' : activeDevice === 'tablet' ? 'tablet' : 'desktop';
   const viewLabel = previewWidth <= 480 ? 'Mobile' : previewWidth <= 768 ? 'Tablet' : 'Desktop';
-  const iframeHeight = Math.min(Math.max(contentHeight, 300), 4000);
 
   return (
     <div className="flex-1 bg-[#2a2a4a] flex flex-col min-h-0 min-w-0">
@@ -126,7 +113,7 @@ export function Preview({ html, activeDevice, previewWidth, onDeviceChange, onWi
               className="block bg-white border-none"
               style={{
                 width: previewWidth + 'px',
-                height: iframeHeight + 'px',
+                height: Math.max(600, previewWidth * 1.3) + 'px',
                 maxWidth: '100%',
               }}
               title="Podgląd newslettera"

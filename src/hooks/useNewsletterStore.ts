@@ -1,20 +1,21 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
-import type { NewsletterState, FeedbackStyle, SavedProject } from '@/types';
+import type { NewsletterState, FeedbackStyle, ProjectData } from '@/types';
 
 const defaultState: NewsletterState = {
   issueNumber: 'Espinacz nr 4/2026',
   preheader: '',
   logoUrl: 'https://eyifvsv.stripocdn.email/content/guids/CABINET_ca0715bd41167d78d8998eff7cc81b8d6196f4289576108dfc827ce6ec8fc9fa/images/_porr_rgb_screenpng.png',
-  viewOnlineUrl: '',
   mainTitle: 'Wiecha w górę na budynku serwerowni FRA32',
   mainDescription: 'Nasze zespoły PORR Polska i PORR Niemcy pracujące ramię w ramię przy budowie centrum danych FRA32 w podfrankfurckim Raunheim osiągnęły właśnie kolejny kamień milowy!',
   mainImage: 'https://eyifvsv.stripocdn.email/content/guids/CABINET_ca0715bd41167d78d8998eff7cc81b8d6196f4289576108dfc827ce6ec8fc9fa/images/linkedin_29.jpg',
   mainLink: 'https://porrtal.porr-group.com',
+  mainLinkEn: '',
   videoThumbnail: 'https://eyifvsv.stripocdn.email/content/guids/videoImgGuid/images/image1769786788858299.jpeg',
   videoLink: 'https://youtu.be/Ivbd9yoec3k',
   videoTitle: 'Modernizacja LK131 LOT A dobiegła końca',
   videoDescription: 'Ten największy w naszej historii kontrakt kolejowy trafił w ręce najlepszej Drużyny.',
   videoReadMore: 'https://porrtal.porr-group.com',
+  videoReadMoreEn: '',
   footerTitle: 'Cieszymy się, że nas czytasz!',
   footerLeft: 'Espinacz to nasz tygodniowy newsletter firmowy.',
   footerRight: 'Masz pomysł lub uwagi? Napisz do nas!',
@@ -46,10 +47,10 @@ const defaultState: NewsletterState = {
     { id: 5, emoji: '😞', label: 'Zły', link: '#' },
   ],
   articles: [
-    { id: 1, title: 'Kolejny raz gramy z WOŚP', description: 'Nasza aukcja już śmiga na Allegro! Można wylicytować wizytę na placu budowy.', image: 'https://eyifvsv.stripocdn.email/content/guids/CABINET_ca0715bd41167d78d8998eff7cc81b8d6196f4289576108dfc827ce6ec8fc9fa/images/image.png', link: 'https://porrtal.porr-group.com' },
-    { id: 2, title: 'Na S19 zima nas nie zatrzyma!', description: 'Oddaliśmy do ruchu 9,3-km odcinek ekspresowej S19 👏', image: 'https://eyifvsv.stripocdn.email/content/guids/CABINET_ca0715bd41167d78d8998eff7cc81b8d6196f4289576108dfc827ce6ec8fc9fa/images/image.jpeg', link: 'https://porrtal.porr-group.com' },
-    { id: 3, title: 'Infrastruktura dla lotniska w Łasku', description: 'Misja trudna, ale daliśmy radę 💪', image: 'https://eyifvsv.stripocdn.email/content/guids/CABINET_ca0715bd41167d78d8998eff7cc81b8d6196f4289576108dfc827ce6ec8fc9fa/images/image_SYG.jpeg', link: 'https://porrtal.porr-group.com' },
-    { id: 4, title: 'Young Energy Europe', description: 'Rozwijamy zielone kompetencje!', image: 'https://eyifvsv.stripocdn.email/content/guids/CABINET_ca0715bd41167d78d8998eff7cc81b8d6196f4289576108dfc827ce6ec8fc9fa/images/image_50O.png', link: 'https://porrtal.porr-group.com' },
+    { id: 1, title: 'Kolejny raz gramy z WOŚP', description: 'Nasza aukcja już śmiga na Allegro! Można wylicytować wizytę na placu budowy.', image: 'https://eyifvsv.stripocdn.email/content/guids/CABINET_ca0715bd41167d78d8998eff7cc81b8d6196f4289576108dfc827ce6ec8fc9fa/images/image.png', link: 'https://porrtal.porr-group.com', linkEn: '' },
+    { id: 2, title: 'Na S19 zima nas nie zatrzyma!', description: 'Oddaliśmy do ruchu 9,3-km odcinek ekspresowej S19 👏', image: 'https://eyifvsv.stripocdn.email/content/guids/CABINET_ca0715bd41167d78d8998eff7cc81b8d6196f4289576108dfc827ce6ec8fc9fa/images/image.jpeg', link: 'https://porrtal.porr-group.com', linkEn: '' },
+    { id: 3, title: 'Infrastruktura dla lotniska w Łasku', description: 'Misja trudna, ale daliśmy radę 💪', image: 'https://eyifvsv.stripocdn.email/content/guids/CABINET_ca0715bd41167d78d8998eff7cc81b8d6196f4289576108dfc827ce6ec8fc9fa/images/image_SYG.jpeg', link: 'https://porrtal.porr-group.com', linkEn: '' },
+    { id: 4, title: 'Young Energy Europe', description: 'Rozwijamy zielone kompetencje!', image: 'https://eyifvsv.stripocdn.email/content/guids/CABINET_ca0715bd41167d78d8998eff7cc81b8d6196f4289576108dfc827ce6ec8fc9fa/images/image_50O.png', link: 'https://porrtal.porr-group.com', linkEn: '' },
   ],
   currentArticleId: null,
   nextId: 5,
@@ -57,26 +58,7 @@ const defaultState: NewsletterState = {
 };
 
 const STORAGE_KEY = 'porr_newsletter_current';
-const LIBRARY_KEY = 'porr_newsletter_library';
-const MAX_LIBRARY_ENTRIES = 25;
-
-function loadLibrary(): SavedProject[] {
-  try {
-    const raw = JSON.parse(localStorage.getItem(LIBRARY_KEY) || '[]');
-    return Array.isArray(raw) ? raw : [];
-  } catch {
-    return [];
-  }
-}
-
-function persistLibrary(library: SavedProject[]): boolean {
-  try {
-    localStorage.setItem(LIBRARY_KEY, JSON.stringify(library));
-    return true;
-  } catch {
-    return false;
-  }
-}
+const RECENT_KEY = 'porr_newsletter_recent';
 
 function loadInitialState(): NewsletterState {
   try {
@@ -104,15 +86,28 @@ export function useNewsletterStore() {
     setState(prev => ({ ...prev, [key]: value }));
   }, []);
 
-  // Auto-save effect — zapisuje tylko bieżący stan roboczy (kopia zapasowa
-  // na wypadek odświeżenia strony). Biblioteka nazwanych projektów jest
-  // odrębna i w pełni kontrolowana przez użytkownika (saveToLibrary).
+  // Auto-save effect
   useEffect(() => {
     setSaveStatus('saving');
     if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current);
     autoSaveTimer.current = setTimeout(() => {
       try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        // Update recent projects
+        let recent: ProjectData[] = [];
+        try {
+          recent = JSON.parse(localStorage.getItem(RECENT_KEY) || '[]');
+        } catch (_parseErr) {
+          recent = [];
+        }
+        const entry: ProjectData = {
+          name: state.issueNumber || 'Bez nazwy',
+          date: new Date().toISOString(),
+          state,
+        };
+        const filtered = recent.filter(r => r.name !== entry.name);
+        filtered.unshift(entry);
+        localStorage.setItem(RECENT_KEY, JSON.stringify(filtered.slice(0, 5)));
         setSaveStatus('saved');
       } catch (saveErr) {
         console.error('Save failed:', saveErr);
@@ -121,24 +116,8 @@ export function useNewsletterStore() {
     return () => { if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current); };
   }, [state]);
 
-  const loadState = useCallback((newState: Partial<NewsletterState>) => {
-    const merged: NewsletterState = { ...defaultState, ...newState };
-
-    // Importowany plik .json może być niepełny lub uszkodzony — zabezpieczamy
-    // pola, na których dalszy kod robi .map/.find, żeby import nigdy nie ubił appki.
-    merged.articles = Array.isArray(merged.articles) ? merged.articles : defaultState.articles;
-    merged.feedbackOptions = Array.isArray(merged.feedbackOptions) && merged.feedbackOptions.length >= 2
-      ? merged.feedbackOptions
-      : defaultState.feedbackOptions;
-
-    const maxArticleId = merged.articles.reduce((max, a) => Math.max(max, Number(a?.id) || 0), 0);
-    const maxFeedbackId = merged.feedbackOptions.reduce((max, o) => Math.max(max, Number(o?.id) || 0), 0);
-    merged.nextId = Number.isFinite(merged.nextId) && merged.nextId > maxArticleId ? merged.nextId : maxArticleId + 1;
-    merged.nextFeedbackId = Number.isFinite(merged.nextFeedbackId) && merged.nextFeedbackId > maxFeedbackId
-      ? merged.nextFeedbackId
-      : maxFeedbackId + 1;
-
-    setState(merged);
+  const loadState = useCallback((newState: NewsletterState) => {
+    setState({ ...defaultState, ...newState });
   }, []);
 
   const resetState = useCallback(() => {
@@ -155,6 +134,7 @@ export function useNewsletterStore() {
         description: 'Opis artykułu...',
         image: 'https://via.placeholder.com/270x180/143e70/feed01?text=Nowy',
         link: '#',
+        linkEn: '',
       };
       return {
         ...prev,
@@ -173,24 +153,7 @@ export function useNewsletterStore() {
     }));
   }, []);
 
-  const duplicateArticle = useCallback((id: number) => {
-    setState(prev => {
-      const idx = prev.articles.findIndex(a => a.id === id);
-      if (idx === -1) return prev;
-      const original = prev.articles[idx];
-      const copy = { ...original, id: prev.nextId, title: `${original.title} (kopia)` };
-      const newArticles = [...prev.articles];
-      newArticles.splice(idx + 1, 0, copy);
-      return {
-        ...prev,
-        articles: newArticles,
-        nextId: prev.nextId + 1,
-        currentArticleId: copy.id,
-      };
-    });
-  }, []);
-
-  const updateArticle = useCallback((id: number, data: Partial<{ title: string; description: string; image: string; link: string }>) => {
+  const updateArticle = useCallback((id: number, data: Partial<{ title: string; description: string; image: string; link: string; linkEn: string }>) => {
     setState(prev => ({
       ...prev,
       articles: prev.articles.map(a => a.id === id ? { ...a, ...data } : a),
@@ -249,44 +212,12 @@ export function useNewsletterStore() {
     }));
   }, []);
 
-  const getLibrary = useCallback((): SavedProject[] => {
-    return loadLibrary().sort((a, b) => b.savedAt.localeCompare(a.savedAt));
-  }, []);
-
-  const getLibraryStats = useCallback((): { count: number; bytes: number } => {
-    const library = loadLibrary();
-    const bytes = new Blob([JSON.stringify(library)]).size;
-    return { count: library.length, bytes };
-  }, []);
-
-  const saveToLibrary = useCallback((name: string): boolean => {
-    const library = loadLibrary();
-    const entry: SavedProject = {
-      id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-      name: name.trim() || 'Bez nazwy',
-      savedAt: new Date().toISOString(),
-      state,
-    };
-    const updated = [entry, ...library].slice(0, MAX_LIBRARY_ENTRIES);
-    return persistLibrary(updated);
-  }, [state]);
-
-  const loadFromLibrary = useCallback((id: string): boolean => {
-    const entry = loadLibrary().find(p => p.id === id);
-    if (!entry) return false;
-    loadState(entry.state);
-    return true;
-  }, [loadState]);
-
-  const deleteFromLibrary = useCallback((id: string) => {
-    persistLibrary(loadLibrary().filter(p => p.id !== id));
-  }, []);
-
-  const renameLibraryEntry = useCallback((id: string, newName: string): boolean => {
-    const trimmed = newName.trim();
-    if (!trimmed) return false;
-    const library = loadLibrary().map(p => (p.id === id ? { ...p, name: trimmed } : p));
-    return persistLibrary(library);
+  const getRecentProjects = useCallback((): ProjectData[] => {
+    try {
+      return JSON.parse(localStorage.getItem(RECENT_KEY) || '[]');
+    } catch (_err) {
+      return [];
+    }
   }, []);
 
   return {
@@ -298,18 +229,12 @@ export function useNewsletterStore() {
     resetState,
     addArticle,
     removeArticle,
-    duplicateArticle,
     updateArticle,
     moveArticle,
     setFeedbackStyle,
     addFeedbackOption,
     removeFeedbackOption,
     updateFeedbackOption,
-    getLibrary,
-    getLibraryStats,
-    saveToLibrary,
-    loadFromLibrary,
-    deleteFromLibrary,
-    renameLibraryEntry,
+    getRecentProjects,
   };
 }

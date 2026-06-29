@@ -3,17 +3,25 @@ import { Input, TextArea, Section } from './FormElements';
 import { ImageUpload } from './ImageUpload';
 import { cn } from '@/utils/cn';
 
+
+function toEnglishPorrtalUrl(url: string): string {
+  return (url || '').replace('/pl-pl/', '/en-us/');
+}
+
+function canDeriveEnglishUrl(url: string): boolean {
+  return (url || '').includes('/pl-pl/');
+}
+
 interface ArticlesTabProps {
   state: NewsletterState;
   update: (partial: Partial<NewsletterState>) => void;
   addArticle: () => void;
   deleteArticle: (id: number) => void;
-  duplicateArticle: (id: number) => void;
   moveArticle: (id: number, dir: -1 | 1) => void;
   updateArticle: (id: number, partial: Partial<Article>) => void;
 }
 
-export function ArticlesTab({ state, update, addArticle, deleteArticle, duplicateArticle, moveArticle, updateArticle }: ArticlesTabProps) {
+export function ArticlesTab({ state, update, addArticle, deleteArticle, moveArticle, updateArticle }: ArticlesTabProps) {
   const current = state.articles.find(a => a.id === state.currentArticleId);
 
   return (
@@ -51,8 +59,6 @@ export function ArticlesTab({ state, update, addArticle, deleteArticle, duplicat
                   className="rounded p-0.5 text-[9px] text-gray-500 hover:bg-white/10 hover:text-white">▲</button>
                 <button onClick={e => { e.stopPropagation(); moveArticle(a.id, 1); }}
                   className="rounded p-0.5 text-[9px] text-gray-500 hover:bg-white/10 hover:text-white">▼</button>
-                <button onClick={e => { e.stopPropagation(); duplicateArticle(a.id); }}
-                  className="rounded p-0.5 text-[9px] text-gray-500 hover:bg-white/10 hover:text-white" title="Duplikuj">⧉</button>
                 <button onClick={e => { e.stopPropagation(); if (confirm('Usunąć artykuł?')) deleteArticle(a.id); }}
                   className="rounded p-0.5 text-[9px] text-gray-500 hover:bg-red-500/20 hover:text-red-400">✕</button>
               </div>
@@ -79,7 +85,17 @@ export function ArticlesTab({ state, update, addArticle, deleteArticle, duplicat
           <TextArea label="Opis" value={current.description} onChange={v => updateArticle(current.id, { description: v })} rows={2} />
           <Input label="Obrazek (URL)" value={current.image} onChange={v => updateArticle(current.id, { image: v })} type="url" icon="🖼️" />
           <ImageUpload label="Lub wgraj" currentUrl={current.image} onUpload={v => updateArticle(current.id, { image: v })} />
-          <Input label="Link" value={current.link} onChange={v => updateArticle(current.id, { link: v })} type="url" icon="🔗" />
+          <Input label="Link PL — Czytaj dalej" value={current.link} onChange={v => updateArticle(current.id, { link: v })} type="url" icon="🔗" />
+          <Input label="Link EN — Read more (opcjonalnie)" value={current.linkEn || ''} onChange={v => updateArticle(current.id, { linkEn: v })} type="url" icon="🌍" />
+          {canDeriveEnglishUrl(current.link) && (
+            <button
+              type="button"
+              onClick={() => updateArticle(current.id, { linkEn: toEnglishPorrtalUrl(current.link) })}
+              className="mb-2 w-full rounded-md border border-[#00bcf2]/30 bg-[#00bcf2]/10 px-2 py-1 text-[10px] font-semibold text-[#8ee8ff] hover:bg-[#00bcf2]/20 transition-colors"
+            >
+              🌍 Uzupełnij EN na podstawie linku PL
+            </button>
+          )}
           <button onClick={() => update({ currentArticleId: null })}
             className="mt-1 w-full rounded-lg bg-white/5 px-2 py-1 text-[9px] text-gray-400 hover:bg-white/10 hover:text-white transition-colors active:scale-[0.98]">
             ✓ Zamknij edycję

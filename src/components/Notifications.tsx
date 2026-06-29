@@ -27,7 +27,7 @@ export function Notifications({ notifications, onDismiss }: NotificationsProps) 
             role="alert"
           >
             <span className="flex-1">{n.message}</span>
-            <button aria-label="Zamknij powiadomienie" className="text-white/60 hover:text-white text-xs flex-shrink-0">✕</button>
+            <button className="text-white/60 hover:text-white text-xs flex-shrink-0">✕</button>
           </div>
         );
       })}

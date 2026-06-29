@@ -11,19 +11,8 @@ interface InputProps {
   icon?: string;
 }
 
-// Permisywna walidacja — pustego pola, placeholdera "#", mailto:/tel: oraz
-// lokalnie wgranych obrazów (data:) nie traktujemy jako błąd, bo to legalne,
-// częste przypadki w newsletterach.
-export function isLikelyValidUrl(value: string): boolean {
-  const trimmed = value.trim();
-  if (!trimmed || trimmed === '#') return true;
-  return /^(https?:\/\/|mailto:|tel:|data:)/i.test(trimmed);
-}
-
 export function Input({ label, value, onChange, type = 'text', placeholder, icon }: InputProps) {
   const [focused, setFocused] = useState(false);
-  const showUrlWarning = type === 'url' && !isLikelyValidUrl(value);
-
   return (
     <div className="mb-1.5">
       <label className="mb-0.5 flex items-center gap-1 text-[10px] font-medium text-gray-500">
@@ -32,9 +21,7 @@ export function Input({ label, value, onChange, type = 'text', placeholder, icon
       </label>
       <div className={cn(
         'rounded-lg border transition-all duration-200',
-        showUrlWarning
-          ? 'border-amber-500/50 ring-1 ring-amber-500/15'
-          : focused ? 'border-[#feed01]/40 ring-1 ring-[#feed01]/10' : 'border-white/[0.06] hover:border-white/10'
+        focused ? 'border-[#feed01]/40 ring-1 ring-[#feed01]/10' : 'border-white/[0.06] hover:border-white/10'
       )}>
         <input
           type={type}
@@ -46,9 +33,6 @@ export function Input({ label, value, onChange, type = 'text', placeholder, icon
           className="w-full rounded-lg bg-[#0d1b2a]/80 px-2.5 py-[6px] text-[11px] text-white placeholder-gray-600 focus:outline-none"
         />
       </div>
-      {showUrlWarning && (
-        <p className="mt-0.5 text-[8px] text-amber-400">⚠ Link powinien zaczynać się od https:// (albo użyj # jako placeholdera)</p>
-      )}
     </div>
   );
 }

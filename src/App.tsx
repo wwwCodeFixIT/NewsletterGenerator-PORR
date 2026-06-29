@@ -1,7 +1,9 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNewsletterStore } from '@/hooks/useNewsletterStore';
 import { useNotification } from '@/hooks/useNotification';
-import { generateEmailHTML, downloadFile } from '@/utils/emailGenerator';
+import { generateEmailHTML } from '@/utils/emailGenerator';
+import { generateEml } from '@/utils/emlGenerator';
+import { copyHtmlToClipboard, copyPlainHtmlSource } from '@/utils/clipboard';
 import { TopBar } from '@/components/TopBar';
 import { Sidebar } from '@/components/Sidebar';
 import { Preview } from '@/components/Preview';
@@ -10,8 +12,18 @@ import { HelpModal } from '@/components/Modals/HelpModal';
 import { CodeModal } from '@/components/Modals/CodeModal';
 import { TemplatesModal } from '@/components/Modals/TemplatesModal';
 import { OutlookHelpModal } from '@/components/Modals/OutlookHelpModal';
-import { LibraryModal } from '@/components/Modals/LibraryModal';
 import type { TabId, DeviceType } from '@/types';
+
+function downloadFile(content: string, filename: string, type: string, addBom = false) {
+  const blob = new Blob([addBom ? '\uFEFF' + content : content], { type });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(a.href);
+}
 
 export function App() {
   const store = useNewsletterStore();
@@ -23,27 +35,69 @@ export function App() {
   const [showCode, setShowCode] = useState(false);
   const [showTemplates, setShowTemplates] = useState(false);
   const [showOutlookHelp, setShowOutlookHelp] = useState(false);
-  const [showLibrary, setShowLibrary] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  // Generowanie HTML jest kosztowne (sklejanie sporej ilości tabel email-safe) —
-  // memoizujemy, żeby nie liczyć go na nowo przy każdym renderze (np. każdym
-  // keystroke w polu tekstowym), tylko gdy faktycznie zmienia się stan newslettera.
-  const html = useMemo(() => generateEmailHTML(store.state), [store.state]);
+  const html = generateEmailHTML(store.state);
 
   const handleTabChange = useCallback((tab: TabId) => {
     setActiveTab(tab);
   }, []);
 
   const handleExportHTML = useCallback(() => {
-    downloadFile(html, 'newsletter.html', 'text/html;charset=utf-8', true);
-    notify('✅ HTML pobrany!');
-  }, [html, notify]);
+  downloadFile(html, 'newsletter.html', 'text/html;charset=utf-8', true);
+  notify('✅ HTML pobrany!');
+}, [html, notify]);
+
+  const handleExportEML = useCallback(() => {
+    const eml = generateEml(html, store.state, { draftMode: false });
+    downloadFile(eml, 'newsletter.eml', 'message/rfc822');
+    notify('📧 EML pobrany! Wersja pod nowy Outlook.', 'info');
+  }, [html, store.state, notify]);
+
+  const handleExportEMLDraft = useCallback(() => {
+    const eml = generateEml(html, store.state, { draftMode: true });
+    downloadFile(eml, 'newsletter-draft.eml', 'message/rfc822');
+    notify('📧 EML draft pobrany! Otwórz w klasycznym Outlooku i edytuj przed wysyłką.', 'info');
+  }, [html, store.state, notify]);
+
+  const handleExportMHT = useCallback(() => {
+  const boundary = '----=_NextPart_' + Date.now();
+  const mht = [
+    'From: <PORR Newsletter Generator>',
+    `Subject: ${store.state.issueNumber}`,
+    'MIME-Version: 1.0',
+    `Content-Type: multipart/related; boundary="${boundary}"; type="text/html"`,
+    '',
+    `--${boundary}`,
+    'Content-Type: text/html; charset="utf-8"',
+    'Content-Transfer-Encoding: 8bit',
+    'Content-Location: file:///newsletter.html',
+    '',
+    html,
+    '',
+    `--${boundary}--`,
+  ].join('\r\n');
+
+  downloadFile(mht, 'newsletter.mht', 'message/rfc822');
+  notify('📄 MHT pobrany!');
+}, [html, store.state.issueNumber, notify]);
 
   const handleCopyHTML = useCallback(() => {
-    navigator.clipboard.writeText(html)
-      .then(() => notify('📋 HTML skopiowany do schowka!'))
+    copyPlainHtmlSource(html)
+      .then(() => notify('📋 Kod HTML skopiowany do schowka!'))
       .catch(() => notify('❌ Nie udało się skopiować HTML. Sprawdź uprawnienia schowka.', 'error'));
+  }, [html, notify]);
+
+  const handleCopyForNewOutlook = useCallback(() => {
+    copyHtmlToClipboard(html)
+      .then(() => notify('📋 Skopiowano jako treść HTML. Wklej bezpośrednio w nową wiadomość lub „Moje szablony”.', 'info'))
+      .catch(() => notify('❌ Nie udało się skopiować treści HTML dla Outlooka.', 'error'));
+  }, [html, notify]);
+
+  const handleCopyAsSignature = useCallback(() => {
+    copyHtmlToClipboard(html)
+      .then(() => notify('✍️ Skopiowano jako treść HTML. Wklej jako nowy podpis w ustawieniach.', 'info'))
+      .catch(() => notify('❌ Nie udało się skopiować podpisu.', 'error'));
   }, [html, notify]);
 
   const handleOpenInNewTab = useCallback(() => {
@@ -53,13 +107,24 @@ export function App() {
   }, [html]);
 
   const handleSaveProject = useCallback(() => {
-    try {
-      localStorage.setItem('porr_newsletter_current', JSON.stringify(store.state));
-      notify('💾 Projekt zapisany lokalnie!');
-    } catch {
-      notify('❌ Nie udało się zapisać projektu lokalnie.', 'error');
-    }
-  }, [notify, store.state]);
+  try {
+    localStorage.setItem('porr_newsletter_current', JSON.stringify(store.state));
+    notify('💾 Projekt zapisany lokalnie!');
+  } catch {
+    notify('❌ Nie udało się zapisać projektu lokalnie.', 'error');
+  }
+}, [notify, store.state]);
+
+  const handleSaveProjectToFile = useCallback(() => {
+    const data = JSON.stringify(store.state, null, 2);
+    downloadFile(
+      data,
+      `newsletter-${store.state.issueNumber.replace(/[^a-z0-9-_]+/gi, '-').replace(/^-+|-+$/g, '') || 'projekt'}.json`,
+      'application/json',
+      true
+    );
+    notify('📦 Projekt wyeksportowany do pliku!');
+  }, [store.state, notify]);
 
   const handleLoadProjectFromFile = useCallback((file: File) => {
     const reader = new FileReader();
@@ -91,25 +156,19 @@ export function App() {
 
   const handleLoadTemplate = useCallback((type: string) => {
     if (type === 'default') {
-      // "Espinacz Standard" = pełny domyślny zestaw (4 artykuły, wideo, feedback).
       store.resetState();
     } else if (type === 'empty') {
-      // Prawdziwie pusty szablon — czysta karta, nie tylko wyczyszczona lista artykułów.
       store.update({
-        issueNumber: 'Nowy newsletter',
-        preheader: '',
-        mainTitle: '',
-        mainDescription: '',
-        mainImage: '',
-        mainLink: '',
         articles: [],
         currentArticleId: null,
         showVideo: false,
         showFeedback: false,
+        mainLinkEn: '',
+        videoReadMoreEn: '',
       });
     } else if (type === 'minimal') {
       store.update({
-        articles: store.state.articles.slice(0, 2),
+        articles: store.state.articles.slice(0, 2).map((article) => ({ ...article, linkEn: article.linkEn || '' })),
         showVideo: false,
         showFeedback: false,
       });
@@ -118,9 +177,46 @@ export function App() {
         issueNumber: 'Zaproszenie na wydarzenie',
         mainTitle: 'Zapraszamy na event firmowy!',
         mainDescription: 'Dołącz do nas na niezapomnianym wydarzeniu. Szczegóły wewnątrz!',
+        mainLinkEn: '',
         articles: [],
         showVideo: false,
+        videoReadMoreEn: '',
         currentArticleId: null,
+      });
+    } else if (type === 'kdp-lodz') {
+      const plUrl = 'https://porrtal.porr-group.com/_/g3-poland/pl-pl/country-news/testowe-obcienia-suwnicy';
+      const enUrl = 'https://porrtal.porr-group.com/_/g3-poland/en-us/country-news/testowe-obcienia-suwnicy';
+
+      store.update({
+        issueNumber: 'Tunnel connects us: Newsletter KDP Łódź nr 1/2026',
+        preheader: 'Tunnel connects us — najnowsze informacje z projektu KDP Łódź.',
+        mainTitle: 'Testowe obciążenia suwnicy',
+        mainDescription: 'Sprawdź najnowszy news z projektu KDP Łódź w polskiej lub angielskiej wersji językowej.',
+        mainLink: plUrl,
+        mainLinkEn: enUrl,
+        showVideo: false,
+        videoReadMoreEn: '',
+        showFeedback: true,
+        currentArticleId: 1,
+        articles: [
+          {
+            id: 1,
+            title: 'Testowe obciążenia suwnicy',
+            description: 'News dostępny w dwóch wersjach językowych — PL i EN.',
+            image: store.state.mainImage,
+            link: plUrl,
+            linkEn: enUrl,
+          },
+          {
+            id: 2,
+            title: 'Kolejny news z projektu KDP Łódź',
+            description: 'Uzupełnij treść, obraz oraz linki PL/EN dla kolejnej aktualności.',
+            image: 'https://via.placeholder.com/270x180/143e70/feed01?text=KDP+Lodz',
+            link: '#',
+            linkEn: '',
+          },
+        ],
+        nextId: 3,
       });
     }
 
@@ -187,12 +283,19 @@ export function App() {
           onNewProject={handleNewProject}
           onSaveProject={handleSaveProject}
           onShowTemplates={() => setShowTemplates(true)}
-          onShowLibrary={() => setShowLibrary(true)}
           onLoadProjectFromFile={handleLoadProjectFromFile}
+          onExportHTML={handleExportHTML}
+          onExportEML={handleExportEML}
+          onExportEMLDraft={handleExportEMLDraft}
+          onExportMHT={handleExportMHT}
+          onCopyHTML={handleCopyHTML}
+          onCopyForNewOutlook={handleCopyForNewOutlook}
+          onCopyAsSignature={handleCopyAsSignature}
           onShowCode={() => setShowCode(true)}
+          onOpenInNewTab={handleOpenInNewTab}
+          onSaveProjectToFile={handleSaveProjectToFile}
           onShowOutlookHelp={() => setShowOutlookHelp(true)}
           notify={notify}
-          html={html}
           isOpen={sidebarOpen}
           onClose={() => setSidebarOpen(false)}
         />
@@ -212,19 +315,6 @@ export function App() {
       {showCode && <CodeModal html={html} onClose={() => setShowCode(false)} onCopy={handleCopyHTML} />}
       {showTemplates && <TemplatesModal onClose={() => setShowTemplates(false)} onLoad={handleLoadTemplate} />}
       {showOutlookHelp && <OutlookHelpModal onClose={() => setShowOutlookHelp(false)} />}
-      {showLibrary && (
-        <LibraryModal
-          onClose={() => setShowLibrary(false)}
-          defaultName={store.state.issueNumber}
-          getLibrary={store.getLibrary}
-          getLibraryStats={store.getLibraryStats}
-          saveToLibrary={store.saveToLibrary}
-          loadFromLibrary={store.loadFromLibrary}
-          deleteFromLibrary={store.deleteFromLibrary}
-          renameLibraryEntry={store.renameLibraryEntry}
-          notify={notify}
-        />
-      )}
     </div>
   );
 }

@@ -1,14 +1,11 @@
 import type { NewsletterState } from '@/types';
 
-export type ExternalImageMode = 'keep' | 'remove';
-
 interface GenerateEmlOptions {
-  draftMode?: boolean;
   /**
-   * keep   - zostawia zewnętrzne obrazy po https/http, więc Outlook może pokazać pasek pobierania obrazów.
-   * remove - usuwa/zastępuje zewnętrzne obrazy placeholderem; lokalne data:image nadal są osadzane jako CID.
+   * true  - klasyczny Outlook otworzy plik jako wersję roboczą do edycji.
+   * false - zwykły plik .eml do otwarcia / importu, lepszy dla nowego Outlooka.
    */
-  externalImageMode?: ExternalImageMode;
+  draftMode?: boolean;
 }
 
 interface InlineImagePart {
@@ -24,25 +21,6 @@ function toCRLF(value: string): string {
 
 function sanitizeEmail(email: string): string {
   return email.replace(/[\r\n]/g, '').trim();
-}
-
-function escapeHtml(value: string): string {
-  return value
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
-}
-
-function decodeHtmlEntities(value: string): string {
-  return value
-    .replace(/&quot;/gi, '"')
-    .replace(/&#39;/gi, "'")
-    .replace(/&amp;/gi, '&')
-    .replace(/&lt;/gi, '<')
-    .replace(/&gt;/gi, '>')
-    .replace(/&nbsp;/gi, ' ');
 }
 
 function encodeHeaderUtf8(value: string): string {
@@ -113,49 +91,21 @@ function extractInlineImages(html: string, messageId: string): { html: string; a
   return { html: updatedHtml, attachments };
 }
 
-function getAltFromImgTag(imgTag: string): string {
-  const altMatch = imgTag.match(/\balt=(['"])(.*?)\1/i);
-  const alt = altMatch?.[2] ? decodeHtmlEntities(altMatch[2]) : 'Obraz';
-  return alt.trim() || 'Obraz';
-}
-
-function isTinyTrackingPixel(imgTag: string): boolean {
-  return /\b(width|height)=(['"]?)1\2/i.test(imgTag) || /width:\s*1px/i.test(imgTag) || /height:\s*1px/i.test(imgTag);
-}
-
-function replaceExternalImages(html: string, mode: ExternalImageMode): string {
-  if (mode === 'keep') return html;
-
-  return html.replace(/<img\b[^>]*\bsrc=(['"])(https?:\/\/[^'"]+)\1[^>]*>/gi, (imgTag: string, _quote: string, src: string) => {
-    if (isTinyTrackingPixel(imgTag)) return '';
-
-    const isSocialIcon = /social-icons|facebook|linkedin|youtube/i.test(src);
-    if (isSocialIcon) return '';
-
-    const alt = getAltFromImgTag(imgTag);
-
-    return `<span style="display:block;background-color:#f4f6f8;border:1px solid #d9e0e8;color:#4b5563;font-family:Arial,sans-serif;font-size:12px;line-height:18px;text-align:center;padding:16px 12px;">${escapeHtml(alt)}<br /><span style="font-size:10px;color:#8a94a6;">Obraz zewnętrzny pominięty w trybie Outlook Safe</span></span>`;
-  });
-}
-
-export function hasExternalImages(html: string): boolean {
-  return /<img\b[^>]*\bsrc=(['"])(https?:\/\/[^'"]+)\1/i.test(html);
-}
-
 export function generateEml(
   html: string,
   state: NewsletterState,
   options: GenerateEmlOptions = {}
 ): string {
-  const { draftMode = false, externalImageMode = 'keep' } = options;
+  const { draftMode = false } = options;
   const fromEmail = sanitizeEmail(state.contactEmail || 'newsletter@example.com');
   const subjectRaw = state.issueNumber?.trim() || 'Newsletter';
   const subject = encodeHeaderUtf8(subjectRaw);
   const messageId = buildMessageId(fromEmail);
   const relatedBoundary = `----=_Related_${Date.now()}_${Math.random().toString(36).slice(2)}`;
 
-  const htmlAfterExternalPolicy = replaceExternalImages(html, externalImageMode);
-  const { html: htmlWithCidImages, attachments } = extractInlineImages(htmlAfterExternalPolicy, messageId);
+  // Lokalnie wgrane obrazy są zapisywane w stanie jako data:image/...;
+  // w .EML zamieniamy je na CID inline attachments, żeby HTML nie puchł jako data URL.
+  const { html: htmlWithCidImages, attachments } = extractInlineImages(html, messageId);
   const htmlEncoded = encodeBase64Utf8(htmlWithCidImages);
 
   const headers = [

@@ -11,46 +11,25 @@ export function OutlookHelpModal({ onClose }: OutlookHelpModalProps) {
         <section>
           <div className="mb-3 flex items-center gap-2">
             <span className="rounded-full bg-[#0078d4] px-2 py-0.5 text-[10px] font-bold text-white">
-              Outlook Desktop 2007-2019
+              Klasyczny Outlook Desktop
             </span>
           </div>
 
-          <h4 className="mb-2 font-bold text-[#feed01]">Najlepsza metoda: .EML draft Outlook Safe</h4>
+          <h4 className="mb-2 font-bold text-[#feed01]">Edycja przed wysyłką: .EML draft</h4>
 
           <ol className="ml-5 list-decimal space-y-2 text-gray-300">
-            <li>W zakładce Eksport kliknij <strong className="text-white">🛡️ .EML draft Outlook Safe</strong></li>
+            <li>W zakładce Eksport kliknij <strong className="text-white">📧 Edytuj przed wysyłką (.EML draft)</strong></li>
             <li>Otwórz pobrany plik w klasycznym Outlooku</li>
-            <li>Możesz edytować temat, treść, odbiorców i dopiero potem wysłać</li>
-            <li>Lokalnie wgrane obrazy są osadzane jako <strong className="text-white">CID inline attachments</strong></li>
-            <li>Zewnętrzne obrazy HTTPS są pomijane, żeby ograniczyć pasek „Kliknij, aby pobrać obrazy”</li>
+            <li>Uzupełnij odbiorców, sprawdź treść i grafiki</li>
+            <li>W razie potrzeby popraw tekst bezpośrednio w oknie wiadomości</li>
+            <li>Kliknij <strong className="text-white">Wyślij</strong></li>
           </ol>
 
           <div className="mt-3 rounded-r-lg border-l-[3px] border-[#0078d4] bg-[#1a1a2e] p-3">
-            <p className="mb-1 text-[11px] font-bold text-[#0078d4]">💡 Jeśli chcesz mieć wszystkie obrazy widoczne od razu:</p>
+            <p className="mb-1 text-[11px] font-bold text-[#0078d4]">💡 Obrazy lokalne</p>
             <p className="text-[11px] text-gray-400">
-              wgraj logo, zdjęcie główne i zdjęcia artykułów lokalnie w generatorze. Nie wklejaj ich jako URL HTTPS.
+              Obrazy wgrane z dysku są w .EML przenoszone do załączników inline CID. Dzięki temu HTML wiadomości jest lżejszy niż przy data:image/base64 w treści.
             </p>
-          </div>
-        </section>
-
-        <div className="h-px bg-[#253555]" />
-
-        <section>
-          <h4 className="mb-2 font-bold text-[#feed01]">Różnica między eksportami</h4>
-
-          <div className="space-y-2 text-[11px] text-gray-300">
-            <div className="rounded-lg border border-white/[0.06] bg-white/[0.03] p-3">
-              <strong className="text-white">🛡️ Outlook Safe</strong>
-              <p className="mt-1 text-gray-400">
-                Najlepszy do klasycznego Outlooka, gdy nie chcesz paska pobierania obrazów. Lokalnie wgrane obrazy zostają, zewnętrzne obrazy są pomijane.
-              </p>
-            </div>
-            <div className="rounded-lg border border-white/[0.06] bg-white/[0.03] p-3">
-              <strong className="text-white">📧 Standard</strong>
-              <p className="mt-1 text-gray-400">
-                Zachowuje wszystkie obrazy, także zewnętrzne HTTPS. Outlook może wtedy pokazać komunikat o pobieraniu obrazów — to normalne zabezpieczenie.
-              </p>
-            </div>
           </div>
         </section>
 
@@ -66,9 +45,9 @@ export function OutlookHelpModal({ onClose }: OutlookHelpModalProps) {
           <h4 className="mb-2 font-bold text-[#feed01]">Zalecany flow</h4>
 
           <ol className="ml-5 list-decimal space-y-1.5 text-gray-300">
-            <li>Do podglądu użyj <strong className="text-white">🛡️ Pobierz .EML Outlook Safe</strong> albo standardowego .EML</li>
-            <li>Do edycji przed wysyłką najstabilniejsze jest <strong className="text-white">📋 Kopiuj dla "Moje szablony"</strong></li>
-            <li>Nowy Outlook nie obsługuje niezawodnie draftów .EML z <code className="rounded bg-[#1a1a2e] px-1 text-[#00d9a5]">X-Unsent: 1</code></li>
+            <li>Do otwarcia / importu użyj <strong className="text-white">📧 Pobierz .EML do nowego Outlooka</strong></li>
+            <li>Do edycji przed wysyłką najstabilniejsze jest <strong className="text-white">📋 Kopiuj jako treść maila / szablon</strong></li>
+            <li>Nowy Outlook nie obsługuje tak stabilnie draftów .EML z <code className="rounded bg-[#1a1a2e] px-1 text-[#00d9a5]">X-Unsent: 1</code> jak klasyczny Outlook</li>
           </ol>
         </section>
 
@@ -76,12 +55,12 @@ export function OutlookHelpModal({ onClose }: OutlookHelpModalProps) {
 
         <section>
           <div className="rounded-r-lg border-l-[3px] border-yellow-500 bg-[#1a1a2e] p-4">
-            <p className="mb-1 text-xs font-bold text-yellow-400">⚠️ Ważne o pasku „Kliknij, aby pobrać obrazy”</p>
+            <p className="mb-1 text-xs font-bold text-yellow-400">⚠️ Pasek „Kliknij tutaj, aby pobrać obrazy”</p>
             <ul className="ml-4 list-disc space-y-1 text-[11px] text-gray-400">
-              <li>Nie da się go wyłączyć z poziomu samego HTML-a, jeśli mail zawiera zewnętrzne obrazki.</li>
-              <li>Najlepsze obejście: wgrać obrazy lokalnie i eksportować przez Outlook Safe.</li>
-              <li>Ikony social media są zewnętrzne, więc w trybie Outlook Safe są pomijane.</li>
-              <li>Wysyłkę produkcyjną zawsze testuj na docelowej wersji Outlooka.</li>
+              <li>To zabezpieczenie Outlooka dla obrazów ładowanych z internetu.</li>
+              <li>Nie da się go wyłączyć samym kodem HTML wiadomości.</li>
+              <li>Można go ograniczyć, używając obrazów lokalnie wgranych do generatora albo ustawień zaufanych nadawców po stronie Outlooka/organizacji.</li>
+              <li>Ikony social media i inne grafiki z URL HTTPS mogą nadal wywoływać ten pasek.</li>
             </ul>
           </div>
         </section>
