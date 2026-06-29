@@ -70,7 +70,7 @@ function allImageSources(state: NewsletterState): string[] {
 }
 
 function articleLabel(article: Article, index: number): string {
-  return article.title?.trim() || `Artykuł ${index + 1}`;
+  return article.title?.trim() || article.titleEn?.trim() || `Artykuł ${index + 1}`;
 }
 
 function estimateEmlBytes(htmlBytes: number, localImageBytes: number): number {
@@ -119,6 +119,10 @@ export function analyzeNewsletter(state: NewsletterState, html: string): Newslet
     issues.push({ severity: 'warning', message: 'Link CTA „Czytaj dalej” w artykule głównym jest pusty.', fix: 'Podaj docelowy URL zamiast pustego linku.' });
   }
 
+  if (state.mainTitleEn?.trim()) {
+    issues.push({ severity: 'info', message: 'Artykuł główny ma tytuł EN — zostanie pokazany pod tytułem PL.' });
+  }
+
   if (state.mainLinkEn?.trim()) {
     issues.push({ severity: 'info', message: 'Artykuł główny ma dodatkowy link EN — zostanie pokazany przycisk „Read more”.' });
   }
@@ -127,7 +131,11 @@ export function analyzeNewsletter(state: NewsletterState, html: string): Newslet
     const label = articleLabel(article, index);
 
     if (!article.title?.trim()) {
-      issues.push({ severity: 'warning', message: `${label}: brakuje tytułu.`, fix: 'Uzupełnij tytuł albo usuń pusty artykuł.' });
+      issues.push({ severity: 'warning', message: `${label}: brakuje tytułu PL.`, fix: 'Uzupełnij tytuł PL albo usuń pusty artykuł.' });
+    }
+
+    if (article.titleEn?.trim()) {
+      issues.push({ severity: 'info', message: `${label}: ma tytuł EN — zostanie pokazany pod tytułem PL.` });
     }
 
     if (!article.image?.trim()) {
@@ -149,6 +157,10 @@ export function analyzeNewsletter(state: NewsletterState, html: string): Newslet
 
   if (state.showVideo && isEmptyUrl(state.videoLink)) {
     issues.push({ severity: 'warning', message: 'Sekcja wideo ma pusty link.', fix: 'Dodaj URL do wideo.' });
+  }
+
+  if (state.showVideo && state.videoTitleEn?.trim()) {
+    issues.push({ severity: 'info', message: 'Sekcja wideo ma tytuł EN — zostanie pokazany pod tytułem PL.' });
   }
 
   if (state.showVideo && state.videoReadMoreEn?.trim()) {

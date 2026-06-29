@@ -163,12 +163,14 @@ export function App() {
         currentArticleId: null,
         showVideo: false,
         showFeedback: false,
+        mainTitleEn: '',
         mainLinkEn: '',
+        videoTitleEn: '',
         videoReadMoreEn: '',
       });
     } else if (type === 'minimal') {
       store.update({
-        articles: store.state.articles.slice(0, 2).map((article) => ({ ...article, linkEn: article.linkEn || '' })),
+        articles: store.state.articles.slice(0, 2).map((article) => ({ ...article, titleEn: article.titleEn || '', linkEn: article.linkEn || '' })),
         showVideo: false,
         showFeedback: false,
       });
@@ -176,10 +178,12 @@ export function App() {
       store.update({
         issueNumber: 'Zaproszenie na wydarzenie',
         mainTitle: 'Zapraszamy na event firmowy!',
+        mainTitleEn: '',
         mainDescription: 'Dołącz do nas na niezapomnianym wydarzeniu. Szczegóły wewnątrz!',
         mainLinkEn: '',
         articles: [],
         showVideo: false,
+        videoTitleEn: '',
         videoReadMoreEn: '',
         currentArticleId: null,
       });
@@ -191,10 +195,12 @@ export function App() {
         issueNumber: 'Tunnel connects us: Newsletter KDP Łódź nr 1/2026',
         preheader: 'Tunnel connects us — najnowsze informacje z projektu KDP Łódź.',
         mainTitle: 'Testowe obciążenia suwnicy',
+        mainTitleEn: 'Crane test loads',
         mainDescription: 'Sprawdź najnowszy news z projektu KDP Łódź w polskiej lub angielskiej wersji językowej.',
         mainLink: plUrl,
         mainLinkEn: enUrl,
         showVideo: false,
+        videoTitleEn: '',
         videoReadMoreEn: '',
         showFeedback: true,
         currentArticleId: 1,
@@ -202,6 +208,7 @@ export function App() {
           {
             id: 1,
             title: 'Testowe obciążenia suwnicy',
+            titleEn: 'Crane test loads',
             description: 'News dostępny w dwóch wersjach językowych — PL i EN.',
             image: store.state.mainImage,
             link: plUrl,
@@ -210,6 +217,7 @@ export function App() {
           {
             id: 2,
             title: 'Kolejny news z projektu KDP Łódź',
+            titleEn: 'Next news from the KDP Łódź project',
             description: 'Uzupełnij treść, obraz oraz linki PL/EN dla kolejnej aktualności.',
             image: 'https://via.placeholder.com/270x180/143e70/feed01?text=KDP+Lodz',
             link: '#',

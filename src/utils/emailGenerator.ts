@@ -85,6 +85,31 @@ function dualReadButtons(
 </table>`;
 }
 
+function bilingualHeading(
+  plTitle: string,
+  enTitle: string | undefined,
+  fontFamily: string,
+  color: string,
+  plFontSize: number,
+  plLineHeight: number,
+  enFontSize: number,
+  enLineHeight: number,
+  bottomPadding: number,
+  tag: 'h2' | 'h3' = 'h3',
+  prefix = ''
+): string {
+  const normalizedEn = (enTitle || '').trim();
+  const mainTitle = `${prefix}${plTitle || ''}`;
+  const plBottom = normalizedEn ? 4 : bottomPadding;
+
+  return `<${tag} style="margin:0;padding:0 0 ${plBottom}px 0;font-family:${fontFamily};font-size:${plFontSize}px;font-weight:bold;color:${color};line-height:${plLineHeight}px;mso-line-height-rule:exactly;">
+        ${esc(mainTitle)}
+      </${tag}>${normalizedEn ? `
+      <p style="margin:0;padding:0 0 ${bottomPadding}px 0;font-family:${fontFamily};font-size:${enFontSize}px;font-weight:bold;color:${color};line-height:${enLineHeight}px;mso-line-height-rule:exactly;">
+        ${esc(normalizedEn)}
+      </p>` : ''}`;
+}
+
 function dataUrlByteSize(value: string): number {
   if (!value?.startsWith('data:')) return 0;
   const base64 = value.split(',')[1] || '';
@@ -151,6 +176,11 @@ export function checkOutlookCompat(s: NewsletterState): OutlookCompatIssue[] {
   }
 
   const englishLinks = Number(Boolean(s.mainLinkEn?.trim())) + Number(Boolean(s.videoReadMoreEn?.trim())) + s.articles.filter((article) => article.linkEn?.trim()).length;
+  const englishTitles = Number(Boolean(s.mainTitleEn?.trim())) + Number(Boolean(s.videoTitleEn?.trim())) + s.articles.filter((article) => article.titleEn?.trim()).length;
+
+  if (englishTitles > 0) {
+    issues.push({ severity: 'ok', message: `Wykryto ${englishTitles} tytuł(ów) EN. Zostaną pokazane pod tytułami PL.` });
+  }
 
   if (englishLinks > 0) {
     issues.push({ severity: 'ok', message: `Wykryto ${englishLinks} link(ów) EN. Dla tych sekcji zostanie dodany przycisk „Read more”.` });
@@ -225,9 +255,7 @@ export function generateEmailHTML(s: NewsletterState): string {
   </tr>
   <tr>
     <td style="padding:25px 20px 10px 20px;">
-      <h2 style="margin:0;padding:0 0 15px 0;font-family:${ff};font-size:20px;font-weight:bold;color:${tc};line-height:26px;mso-line-height-rule:exactly;">
-        ${esc(s.mainTitle)}
-      </h2>
+      ${bilingualHeading(s.mainTitle, s.mainTitleEn, ff, tc, 20, 26, 16, 22, 15, 'h2')}
       <p style="margin:0;padding:0;font-family:${ff};font-size:14px;color:${tc};line-height:22px;mso-line-height-rule:exactly;">
         ${esc(s.mainDescription)}
       </p>
@@ -274,9 +302,7 @@ export function generateEmailHTML(s: NewsletterState): string {
       <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="270" align="right" class="stack-col" style="display:inline-block;vertical-align:top;width:270px;max-width:270px;">
         <tr>
           <td style="padding-top:5px;">
-            <h3 style="margin:0;padding:0 0 10px 0;font-family:${ff};font-size:18px;font-weight:bold;color:${tc};line-height:24px;mso-line-height-rule:exactly;">
-              ${esc(a.title)}
-            </h3>
+            ${bilingualHeading(a.title, a.titleEn, ff, tc, 18, 24, 14, 19, 10, 'h3')}
             <p style="margin:0;padding:0 0 15px 0;font-family:${ff};font-size:14px;color:${tc};line-height:20px;mso-line-height-rule:exactly;">
               ${esc(a.description)}
             </p>
@@ -312,9 +338,7 @@ export function generateEmailHTML(s: NewsletterState): string {
   </tr>
   <tr>
     <td style="padding:15px 20px 30px 20px;">
-      <h3 style="margin:0;padding:0 0 10px 0;font-family:${ff};font-size:18px;font-weight:bold;color:${tc};line-height:24px;mso-line-height-rule:exactly;">
-        🎬 ${esc(s.videoTitle)}
-      </h3>
+      ${bilingualHeading(s.videoTitle, s.videoTitleEn, ff, tc, 18, 24, 14, 19, 10, 'h3', '🎬 ')}
       <p style="margin:0;padding:0 0 15px 0;font-family:${ff};font-size:14px;color:${tc};line-height:20px;mso-line-height-rule:exactly;">
         ${esc(s.videoDescription)}
       </p>

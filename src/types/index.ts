@@ -1,6 +1,9 @@
 export interface Article {
   id: number;
+  /** Polish title shown as the primary headline. */
   title: string;
+  /** Optional English title shown below the Polish title. */
+  titleEn?: string;
   description: string;
   image: string;
   /** Polish/news source URL used by the PL CTA button. */
@@ -25,7 +28,10 @@ export interface NewsletterState {
   logoUrl: string;
 
   // Main article
+  /** Polish title for the main article. */
   mainTitle: string;
+  /** Optional English title for the main article. */
+  mainTitleEn?: string;
   mainDescription: string;
   mainImage: string;
   mainLink: string;
@@ -35,7 +41,10 @@ export interface NewsletterState {
   // Video
   videoThumbnail: string;
   videoLink: string;
+  /** Polish title for the video/news block. */
   videoTitle: string;
+  /** Optional English title for the video/news block. */
+  videoTitleEn?: string;
   videoDescription: string;
   videoReadMore: string;
   /** Optional English version URL for the video/news CTA. */

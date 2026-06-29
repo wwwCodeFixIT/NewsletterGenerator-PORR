@@ -341,7 +341,8 @@ function ContentTab({ store }: { store: Store }) {
       </Section>
 
       <Section title="⭐ ARTYKUŁ GŁÓWNY">
-        <Input label="Tytuł" value={state.mainTitle} onChange={v => updateField('mainTitle', v)} />
+        <Input label="Tytuł PL" value={state.mainTitle} onChange={v => updateField('mainTitle', v)} />
+        <Input label="Tytuł EN (opcjonalnie)" value={state.mainTitleEn || ''} onChange={v => updateField('mainTitleEn', v)} />
         <TextArea label="Opis" value={state.mainDescription} onChange={v => updateField('mainDescription', v)} rows={3} />
         <Input label="Obrazek (URL)" value={state.mainImage} onChange={v => updateField('mainImage', v)} type="url" />
         <ImageUpload onUpload={v => updateField('mainImage', v)} />
@@ -361,7 +362,8 @@ function ContentTab({ store }: { store: Store }) {
       <Section title="🎬 WIDEO" defaultOpen={false}>
         <Input label="Miniaturka" value={state.videoThumbnail} onChange={v => updateField('videoThumbnail', v)} type="url" />
         <Input label="Link do wideo" value={state.videoLink} onChange={v => updateField('videoLink', v)} type="url" />
-        <Input label="Tytuł" value={state.videoTitle} onChange={v => updateField('videoTitle', v)} />
+        <Input label="Tytuł PL" value={state.videoTitle} onChange={v => updateField('videoTitle', v)} />
+        <Input label="Tytuł EN (opcjonalnie)" value={state.videoTitleEn || ''} onChange={v => updateField('videoTitleEn', v)} />
         <TextArea label="Opis" value={state.videoDescription} onChange={v => updateField('videoDescription', v)} />
         <Input label="Link CTA PL" value={state.videoReadMore} onChange={v => updateField('videoReadMore', v)} type="url" />
         <Input label="Link CTA EN (opcjonalnie)" value={state.videoReadMoreEn || ''} onChange={v => updateField('videoReadMoreEn', v)} type="url" />
@@ -416,7 +418,10 @@ function ArticlesTab({ store }: { store: Store }) {
                   <span className="w-5 h-5 rounded bg-[#feed01]/20 text-[#feed01] text-[10px] font-bold flex items-center justify-center flex-shrink-0">
                     {i + 1}
                   </span>
-                  <span className="text-[11px] text-white/90 font-medium truncate">{a.title}</span>
+                  <div className="min-w-0 flex-1">
+                    <span className="block text-[11px] text-white/90 font-medium truncate">{a.title}</span>
+                    {a.titleEn && <span className="block text-[9px] text-[#00bcf2] truncate">EN: {a.titleEn}</span>}
+                  </div>
                 </div>
                 <div className="flex gap-0.5 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
                   <button
@@ -458,7 +463,8 @@ function ArticlesTab({ store }: { store: Store }) {
         if (!article) return null;
         return (
           <Section title="✏️ EDYCJA ARTYKUŁU">
-            <Input label="Tytuł" value={article.title} onChange={v => updateArticle(article.id, { title: v })} />
+            <Input label="Tytuł PL" value={article.title} onChange={v => updateArticle(article.id, { title: v })} />
+            <Input label="Tytuł EN (opcjonalnie)" value={article.titleEn || ''} onChange={v => updateArticle(article.id, { titleEn: v })} />
             <TextArea label="Opis" value={article.description} onChange={v => updateArticle(article.id, { description: v })} />
             <Input label="Obrazek (URL)" value={article.image} onChange={v => updateArticle(article.id, { image: v })} type="url" />
             <ImageUpload onUpload={v => updateArticle(article.id, { image: v })} />

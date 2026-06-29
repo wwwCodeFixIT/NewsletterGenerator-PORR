@@ -26,7 +26,7 @@ const templates = [
     id: 'kdp-lodz',
     icon: '🚇',
     title: 'Tunnel connects us',
-    desc: 'Drugi szablon Espinacza z linkami PL/EN i dodatkowymi przyciskami „Czytaj dalej” / „Read more”.',
+    desc: 'Drugi szablon Espinacza z tytułami i linkami PL/EN oraz przyciskami „Czytaj dalej” / „Read more”.',
     badge: 'PL/EN',
     badgeColor: 'bg-[#00bcf2] text-white',
   },

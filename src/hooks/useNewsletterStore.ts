@@ -6,6 +6,7 @@ const defaultState: NewsletterState = {
   preheader: '',
   logoUrl: 'https://eyifvsv.stripocdn.email/content/guids/CABINET_ca0715bd41167d78d8998eff7cc81b8d6196f4289576108dfc827ce6ec8fc9fa/images/_porr_rgb_screenpng.png',
   mainTitle: 'Wiecha w górę na budynku serwerowni FRA32',
+  mainTitleEn: '',
   mainDescription: 'Nasze zespoły PORR Polska i PORR Niemcy pracujące ramię w ramię przy budowie centrum danych FRA32 w podfrankfurckim Raunheim osiągnęły właśnie kolejny kamień milowy!',
   mainImage: 'https://eyifvsv.stripocdn.email/content/guids/CABINET_ca0715bd41167d78d8998eff7cc81b8d6196f4289576108dfc827ce6ec8fc9fa/images/linkedin_29.jpg',
   mainLink: 'https://porrtal.porr-group.com',
@@ -13,6 +14,7 @@ const defaultState: NewsletterState = {
   videoThumbnail: 'https://eyifvsv.stripocdn.email/content/guids/videoImgGuid/images/image1769786788858299.jpeg',
   videoLink: 'https://youtu.be/Ivbd9yoec3k',
   videoTitle: 'Modernizacja LK131 LOT A dobiegła końca',
+  videoTitleEn: '',
   videoDescription: 'Ten największy w naszej historii kontrakt kolejowy trafił w ręce najlepszej Drużyny.',
   videoReadMore: 'https://porrtal.porr-group.com',
   videoReadMoreEn: '',
@@ -47,10 +49,10 @@ const defaultState: NewsletterState = {
     { id: 5, emoji: '😞', label: 'Zły', link: '#' },
   ],
   articles: [
-    { id: 1, title: 'Kolejny raz gramy z WOŚP', description: 'Nasza aukcja już śmiga na Allegro! Można wylicytować wizytę na placu budowy.', image: 'https://eyifvsv.stripocdn.email/content/guids/CABINET_ca0715bd41167d78d8998eff7cc81b8d6196f4289576108dfc827ce6ec8fc9fa/images/image.png', link: 'https://porrtal.porr-group.com', linkEn: '' },
-    { id: 2, title: 'Na S19 zima nas nie zatrzyma!', description: 'Oddaliśmy do ruchu 9,3-km odcinek ekspresowej S19 👏', image: 'https://eyifvsv.stripocdn.email/content/guids/CABINET_ca0715bd41167d78d8998eff7cc81b8d6196f4289576108dfc827ce6ec8fc9fa/images/image.jpeg', link: 'https://porrtal.porr-group.com', linkEn: '' },
-    { id: 3, title: 'Infrastruktura dla lotniska w Łasku', description: 'Misja trudna, ale daliśmy radę 💪', image: 'https://eyifvsv.stripocdn.email/content/guids/CABINET_ca0715bd41167d78d8998eff7cc81b8d6196f4289576108dfc827ce6ec8fc9fa/images/image_SYG.jpeg', link: 'https://porrtal.porr-group.com', linkEn: '' },
-    { id: 4, title: 'Young Energy Europe', description: 'Rozwijamy zielone kompetencje!', image: 'https://eyifvsv.stripocdn.email/content/guids/CABINET_ca0715bd41167d78d8998eff7cc81b8d6196f4289576108dfc827ce6ec8fc9fa/images/image_50O.png', link: 'https://porrtal.porr-group.com', linkEn: '' },
+    { id: 1, title: 'Kolejny raz gramy z WOŚP', titleEn: '', description: 'Nasza aukcja już śmiga na Allegro! Można wylicytować wizytę na placu budowy.', image: 'https://eyifvsv.stripocdn.email/content/guids/CABINET_ca0715bd41167d78d8998eff7cc81b8d6196f4289576108dfc827ce6ec8fc9fa/images/image.png', link: 'https://porrtal.porr-group.com', linkEn: '' },
+    { id: 2, title: 'Na S19 zima nas nie zatrzyma!', titleEn: '', description: 'Oddaliśmy do ruchu 9,3-km odcinek ekspresowej S19 👏', image: 'https://eyifvsv.stripocdn.email/content/guids/CABINET_ca0715bd41167d78d8998eff7cc81b8d6196f4289576108dfc827ce6ec8fc9fa/images/image.jpeg', link: 'https://porrtal.porr-group.com', linkEn: '' },
+    { id: 3, title: 'Infrastruktura dla lotniska w Łasku', titleEn: '', description: 'Misja trudna, ale daliśmy radę 💪', image: 'https://eyifvsv.stripocdn.email/content/guids/CABINET_ca0715bd41167d78d8998eff7cc81b8d6196f4289576108dfc827ce6ec8fc9fa/images/image_SYG.jpeg', link: 'https://porrtal.porr-group.com', linkEn: '' },
+    { id: 4, title: 'Young Energy Europe', titleEn: '', description: 'Rozwijamy zielone kompetencje!', image: 'https://eyifvsv.stripocdn.email/content/guids/CABINET_ca0715bd41167d78d8998eff7cc81b8d6196f4289576108dfc827ce6ec8fc9fa/images/image_50O.png', link: 'https://porrtal.porr-group.com', linkEn: '' },
   ],
   currentArticleId: null,
   nextId: 5,
@@ -117,7 +119,17 @@ export function useNewsletterStore() {
   }, [state]);
 
   const loadState = useCallback((newState: NewsletterState) => {
-    setState({ ...defaultState, ...newState });
+    const merged = { ...defaultState, ...newState };
+    merged.articles = (newState.articles || defaultState.articles).map((article) => ({
+      titleEn: '',
+      linkEn: '',
+      ...article,
+    }));
+    merged.mainTitleEn = merged.mainTitleEn || '';
+    merged.mainLinkEn = merged.mainLinkEn || '';
+    merged.videoTitleEn = merged.videoTitleEn || '';
+    merged.videoReadMoreEn = merged.videoReadMoreEn || '';
+    setState(merged);
   }, []);
 
   const resetState = useCallback(() => {
@@ -131,6 +143,7 @@ export function useNewsletterStore() {
       const newArticle = {
         id: prev.nextId,
         title: 'Nowy artykuł',
+        titleEn: '',
         description: 'Opis artykułu...',
         image: 'https://via.placeholder.com/270x180/143e70/feed01?text=Nowy',
         link: '#',
@@ -153,7 +166,7 @@ export function useNewsletterStore() {
     }));
   }, []);
 
-  const updateArticle = useCallback((id: number, data: Partial<{ title: string; description: string; image: string; link: string; linkEn: string }>) => {
+  const updateArticle = useCallback((id: number, data: Partial<{ title: string; titleEn: string; description: string; image: string; link: string; linkEn: string }>) => {
     setState(prev => ({
       ...prev,
       articles: prev.articles.map(a => a.id === id ? { ...a, ...data } : a),
