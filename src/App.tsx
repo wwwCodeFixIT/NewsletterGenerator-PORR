@@ -51,7 +51,7 @@ export function App() {
   const handleExportEML = useCallback(() => {
     const eml = generateEml(html, store.state, { draftMode: false });
     downloadFile(eml, 'newsletter.eml', 'message/rfc822');
-    notify('📧 EML pobrany! Wersja pod nowy Outlook.', 'info');
+    notify('📧 EML pobrany! Otwórz/importuj w nowym Outlooku. Do edycji najstabilniej użyj kopiowania treści do nowej wiadomości.', 'info');
   }, [html, store.state, notify]);
 
   const handleExportEMLDraft = useCallback(() => {
@@ -90,13 +90,13 @@ export function App() {
 
   const handleCopyForNewOutlook = useCallback(() => {
     copyHtmlToClipboard(html)
-      .then(() => notify('📋 Skopiowano jako treść HTML. Wklej bezpośrednio w nową wiadomość lub „Moje szablony”.', 'info'))
+      .then(() => notify('📋 Skopiowano treść newslettera. W nowym Outlooku utwórz nową wiadomość i wklej Ctrl+V.', 'info'))
       .catch(() => notify('❌ Nie udało się skopiować treści HTML dla Outlooka.', 'error'));
   }, [html, notify]);
 
   const handleCopyAsSignature = useCallback(() => {
     copyHtmlToClipboard(html)
-      .then(() => notify('✍️ Skopiowano jako treść HTML. Wklej jako nowy podpis w ustawieniach.', 'info'))
+      .then(() => notify('✍️ Skopiowano treść podpisu. Wklej w ustawieniach podpisu Outlooka.', 'info'))
       .catch(() => notify('❌ Nie udało się skopiować podpisu.', 'error'));
   }, [html, notify]);
 

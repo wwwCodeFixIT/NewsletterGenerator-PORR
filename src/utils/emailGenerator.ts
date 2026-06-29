@@ -36,22 +36,23 @@ function vmlButton(
   height: number = 40
 ): string {
   const url = safeHref(href);
+  const safeWidth = Math.max(90, width);
+  const safeHeight = Math.max(34, height);
 
-  return `<!--[if mso]>
-<v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="${esc(url)}" style="height:${height}px;v-text-anchor:middle;width:${width}px;" arcsize="13%" strokecolor="${bgColor}" fillcolor="${bgColor}">
-  <w:anchorlock/>
-  <center style="color:${textColor};font-family:${fontFamily};font-size:14px;font-weight:bold;">
-    ${esc(text)}
-  </center>
-</v:roundrect>
-<![endif]-->
-<!--[if !mso]><!-->
-<a href="${esc(url)}" style="display:inline-block;padding:12px 25px;background-color:${bgColor};color:${textColor};font-family:${fontFamily};font-size:14px;font-weight:bold;line-height:16px;text-decoration:none;border-radius:5px;mso-hide:all;">
-  ${esc(text)}
-</a>
-<!--<![endif]-->`;
+  // Uwaga: celowo NIE używamy tutaj VML <v:roundrect>.
+  // VML działa dobrze w pierwszym otwarciu w Outlooku, ale Outlook potrafi go
+  // rozjechać przy funkcji „Prześlij dalej”. Zwykły table-button jest mniej
+  // efektowny, ale stabilniejszy przy forwardowaniu i edycji draftu.
+  return `<table role="presentation" border="0" cellpadding="0" cellspacing="0" width="${safeWidth}" style="width:${safeWidth}px;max-width:${safeWidth}px;border-collapse:collapse;mso-table-lspace:0pt;mso-table-rspace:0pt;display:inline-table;">
+  <tr>
+    <td align="center" valign="middle" width="${safeWidth}" height="${safeHeight}" bgcolor="${bgColor}" style="width:${safeWidth}px;height:${safeHeight}px;background-color:${bgColor};border-radius:5px;mso-line-height-rule:exactly;">
+      <a href="${esc(url)}" target="_blank" style="display:block;width:${safeWidth}px;font-family:${fontFamily};font-size:13px;font-weight:bold;line-height:${safeHeight}px;color:${textColor};text-decoration:none;text-align:center;mso-line-height-rule:exactly;">
+        ${esc(text)}
+      </a>
+    </td>
+  </tr>
+</table>`;
 }
-
 
 function hasUsableHref(href?: string): boolean {
   const value = (href || '').trim();
@@ -173,6 +174,10 @@ export function checkOutlookCompat(s: NewsletterState): OutlookCompatIssue[] {
       severity: localImagesSize > 8 * 1024 * 1024 ? 'error' : 'ok',
       message: `Wykryto ${localImages.length} lokalnie wgrany/e obraz(y). Eksport .EML osadzi je jako CID inline attachments.`,
     });
+    issues.push({
+      severity: 'warning',
+      message: 'Nie używaj funkcji „Prześlij dalej” dla draftu z obrazami CID. Outlook może zgubić osadzone obrazy przy forwardowaniu. Otwórz draft, uzupełnij odbiorców i kliknij „Wyślij”.',
+    });
   }
 
   const englishLinks = Number(Boolean(s.mainLinkEn?.trim())) + Number(Boolean(s.videoReadMoreEn?.trim())) + s.articles.filter((article) => article.linkEn?.trim()).length;
@@ -269,10 +274,10 @@ export function generateEmailHTML(s: NewsletterState): string {
 </table>`;
 
   const articlesHTML = s.articles.map((a) => `
-<table role="presentation" border="0" cellpadding="0" cellspacing="0" width="600" align="center" style="width:600px;max-width:600px;border-collapse:collapse;" class="responsive" bgcolor="#ffffff">
+<table role="presentation" border="0" cellpadding="0" cellspacing="0" width="600" align="center" style="width:600px;max-width:600px;border-collapse:collapse;mso-table-lspace:0pt;mso-table-rspace:0pt;" class="responsive" bgcolor="#ffffff">
   <tr>
     <td style="padding:10px 20px;">
-      <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%">
+      <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="560" style="width:560px;max-width:560px;border-collapse:collapse;mso-table-lspace:0pt;mso-table-rspace:0pt;" class="responsive">
         <tr>
           <td style="border-top:1px solid #e8e8e8;font-size:1px;line-height:1px;" height="1">&nbsp;</td>
         </tr>
@@ -280,28 +285,15 @@ export function generateEmailHTML(s: NewsletterState): string {
     </td>
   </tr>
   <tr>
-    <td style="padding:10px 20px 20px 20px;">
-      <!--[if mso]>
-      <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%"><tr>
-        <td width="270" valign="top">
-      <![endif]-->
-      <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="270" align="left" class="stack-col" style="display:inline-block;vertical-align:top;width:270px;max-width:270px;">
+    <td align="center" style="padding:10px 20px 20px 20px;">
+      <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="560" align="center" style="width:560px;max-width:560px;border-collapse:collapse;mso-table-lspace:0pt;mso-table-rspace:0pt;table-layout:fixed;" class="responsive">
         <tr>
-          <td style="padding:0 10px 0 0;">
-            <a href="${esc(safeHref(a.link))}">
-              <img src="${esc(a.image)}" width="270" border="0" alt="${esc(a.title)}" class="fluid-img" style="display:block;border:0;outline:none;width:270px;max-width:270px;height:auto;-ms-interpolation-mode:bicubic;">
+          <td width="260" valign="top" style="width:260px;padding:0 20px 0 0;font-size:0;line-height:0;">
+            <a href="${esc(safeHref(a.link))}" target="_blank">
+              <img src="${esc(a.image)}" width="260" border="0" alt="${esc(a.title)}" class="fluid-img" style="display:block;border:0;outline:none;text-decoration:none;width:260px;max-width:260px;height:auto;-ms-interpolation-mode:bicubic;">
             </a>
           </td>
-        </tr>
-      </table>
-      <!--[if mso]>
-        </td>
-        <td width="20" style="font-size:1px;line-height:1px;">&nbsp;</td>
-        <td width="270" valign="top">
-      <![endif]-->
-      <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="270" align="right" class="stack-col" style="display:inline-block;vertical-align:top;width:270px;max-width:270px;">
-        <tr>
-          <td style="padding-top:5px;">
+          <td width="280" valign="top" style="width:280px;padding:0;vertical-align:top;">
             ${bilingualHeading(a.title, a.titleEn, ff, tc, 18, 24, 14, 19, 10, 'h3')}
             <p style="margin:0;padding:0 0 15px 0;font-family:${ff};font-size:14px;color:${tc};line-height:20px;mso-line-height-rule:exactly;">
               ${esc(a.description)}
@@ -310,10 +302,6 @@ export function generateEmailHTML(s: NewsletterState): string {
           </td>
         </tr>
       </table>
-      <!--[if mso]>
-        </td>
-      </tr></table>
-      <![endif]-->
     </td>
   </tr>
 </table>`).join('\n');
@@ -408,7 +396,7 @@ export function generateEmailHTML(s: NewsletterState): string {
 </table>` : '';
 
   const footerHTML = `
-<table role="presentation" border="0" cellpadding="0" cellspacing="0" width="600" align="center" style="width:600px;max-width:600px;border-collapse:collapse;" class="responsive" bgcolor="${pc}">
+<table role="presentation" border="0" cellpadding="0" cellspacing="0" width="600" align="center" style="width:600px;max-width:600px;border-collapse:collapse;mso-table-lspace:0pt;mso-table-rspace:0pt;" class="responsive" bgcolor="${pc}">
   <tr>
     <td style="padding:25px 25px 5px 25px;" bgcolor="${pc}">
       <h3 style="margin:0;padding:0;font-family:${ff};font-size:18px;font-weight:bold;color:#ffffff;line-height:24px;mso-line-height-rule:exactly;">
@@ -418,37 +406,20 @@ export function generateEmailHTML(s: NewsletterState): string {
   </tr>
   <tr>
     <td style="padding:15px 25px;" bgcolor="${pc}">
-      <!--[if mso]>
-      <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%"><tr>
-        <td width="255" valign="top">
-      <![endif]-->
-      <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="255" align="left" class="stack-col" style="display:inline-block;vertical-align:top;width:255px;max-width:255px;">
+      <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="550" style="width:550px;max-width:550px;border-collapse:collapse;mso-table-lspace:0pt;mso-table-rspace:0pt;table-layout:fixed;" class="responsive">
         <tr>
-          <td>
+          <td width="255" valign="top" style="width:255px;padding:0 20px 0 0;vertical-align:top;">
             <p style="margin:0;padding:0;font-family:${ff};font-size:14px;color:#ffffff;line-height:22px;mso-line-height-rule:exactly;">
               ${esc(s.footerLeft)}
             </p>
           </td>
-        </tr>
-      </table>
-      <!--[if mso]>
-        </td>
-        <td width="40" style="font-size:1px;line-height:1px;">&nbsp;</td>
-        <td width="255" valign="top">
-      <![endif]-->
-      <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="255" align="right" class="stack-col" style="display:inline-block;vertical-align:top;width:255px;max-width:255px;">
-        <tr>
-          <td>
+          <td width="255" valign="top" style="width:255px;padding:0;vertical-align:top;">
             <p style="margin:0;padding:0;font-family:${ff};font-size:14px;color:#ffffff;line-height:22px;mso-line-height-rule:exactly;">
               ${esc(s.footerRight)}
             </p>
           </td>
         </tr>
       </table>
-      <!--[if mso]>
-        </td>
-      </tr></table>
-      <![endif]-->
     </td>
   </tr>
   <tr>
@@ -505,6 +476,8 @@ export function generateEmailHTML(s: NewsletterState): string {
 <meta http-equiv="X-UA-Compatible" content="IE=edge" />
 <meta name="format-detection" content="telephone=no,address=no,email=no,date=no,url=no" />
 <meta name="x-apple-disable-message-reformatting" />
+<meta name="color-scheme" content="light" />
+<meta name="supported-color-schemes" content="light" />
 <title>${esc(s.issueNumber)}</title>
 <!--[if gte mso 9]>
 <xml>
@@ -520,6 +493,7 @@ export function generateEmailHTML(s: NewsletterState): string {
 </style>
 <![endif]-->
 <style type="text/css">
+:root { color-scheme: light; supported-color-schemes: light; }
 body, #bodyTable { margin:0 !important; padding:0 !important; width:100% !important; height:100% !important; }
 body { background-color:${bg}; -webkit-text-size-adjust:100%; -ms-text-size-adjust:100%; }
 table { border-collapse:collapse; mso-table-lspace:0pt; mso-table-rspace:0pt; }

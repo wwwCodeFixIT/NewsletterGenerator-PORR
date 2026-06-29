@@ -1,7 +1,15 @@
-function htmlToPlainText(html: string): string {
-  return html
-    .replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi, '')
+function extractBodyHtml(html: string): string {
+  const match = html.match(/<body\b[^>]*>([\s\S]*?)<\/body>/i);
+  const body = match?.[1]?.trim() || html.trim();
+
+  return body
     .replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, '')
+    .replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi, '')
+    .trim();
+}
+
+function htmlToPlainText(html: string): string {
+  return extractBodyHtml(html)
     .replace(/<br\s*\/?\s*>/gi, '\n')
     .replace(/<\/p>/gi, '\n\n')
     .replace(/<\/h[1-6]>/gi, '\n\n')
@@ -19,12 +27,17 @@ function htmlToPlainText(html: string): string {
     .trim();
 }
 
+export function getComposeHtml(html: string): string {
+  return extractBodyHtml(html);
+}
+
 export async function copyHtmlToClipboard(html: string): Promise<void> {
+  const composeHtml = getComposeHtml(html);
   const text = htmlToPlainText(html);
 
   if ('ClipboardItem' in window && navigator.clipboard?.write) {
     const item = new ClipboardItem({
-      'text/html': new Blob([html], { type: 'text/html' }),
+      'text/html': new Blob([composeHtml], { type: 'text/html' }),
       'text/plain': new Blob([text], { type: 'text/plain' }),
     });
 
@@ -32,7 +45,7 @@ export async function copyHtmlToClipboard(html: string): Promise<void> {
     return;
   }
 
-  await navigator.clipboard.writeText(html);
+  await navigator.clipboard.writeText(composeHtml);
 }
 
 export async function copyPlainHtmlSource(html: string): Promise<void> {

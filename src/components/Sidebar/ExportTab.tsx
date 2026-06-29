@@ -4,6 +4,7 @@ import type { NewsletterState } from '@/types';
 import { generateEmailHTML, generateMHT, downloadFile, checkOutlookCompat } from '@/utils/emailGenerator';
 import { generateEml } from '@/utils/emlGenerator';
 import { cn } from '@/utils/cn';
+import { copyHtmlToClipboard, copyPlainHtmlSource } from '@/utils/clipboard';
 
 interface ExportTabProps {
   state: NewsletterState;
@@ -70,8 +71,8 @@ export function ExportTab({ state, notify, onShowCode, onShowOutlookHelp, loadSt
 
   const handleCopy = async () => {
     try {
-      await navigator.clipboard.writeText(html);
-      notify('HTML skopiowany do schowka!');
+      await copyPlainHtmlSource(html);
+      notify('Kod HTML skopiowany do schowka!');
     } catch {
       notify('Nie udało się skopiować HTML do schowka.', 'error');
     }
@@ -79,8 +80,8 @@ export function ExportTab({ state, notify, onShowCode, onShowOutlookHelp, loadSt
 
   const handleCopyNewOutlook = async () => {
     try {
-      await navigator.clipboard.writeText(html);
-      notify('Skopiowano! Wklej do "Moje szablony" albo bezpośrednio do nowej wiadomości.', 'info');
+      await copyHtmlToClipboard(html);
+      notify('Skopiowano treść newslettera. W nowym Outlooku utwórz nową wiadomość i wklej Ctrl+V.', 'info');
     } catch {
       notify('Nie udało się skopiować treści dla nowego Outlooka.', 'error');
     }
@@ -88,8 +89,8 @@ export function ExportTab({ state, notify, onShowCode, onShowOutlookHelp, loadSt
 
   const handleCopySignature = async () => {
     try {
-      await navigator.clipboard.writeText(html);
-      notify('Skopiowano! Wklej jako nowy podpis.', 'info');
+      await copyHtmlToClipboard(html);
+      notify('Skopiowano treść podpisu. Wklej ją w ustawieniach podpisu Outlooka.', 'info');
     } catch {
       notify('Nie udało się skopiować podpisu.', 'error');
     }
@@ -191,40 +192,40 @@ export function ExportTab({ state, notify, onShowCode, onShowOutlookHelp, loadSt
       </div>
 
       <ExportSection
+        icon="✨"
+        title="Nowy Outlook — zalecane"
+        subtitle="Windows / Web"
+        borderColor="border-cyan-500/20"
+        bgColor="bg-cyan-900/10"
+      >
+        <div className="mb-1.5 rounded-lg border-l-2 border-cyan-400/40 bg-black/20 p-1.5 text-[8px] leading-relaxed text-gray-400">
+          <strong className="mb-0.5 block text-[9px] text-cyan-300">Najstabilniej: nowa wiadomość + wklejenie treści</strong>
+          Kliknij kopiowanie, utwórz nową wiadomość w nowym Outlooku i wklej Ctrl+V. Nie używaj „Prześlij dalej” jako głównego workflow.
+        </div>
+
+        <div className="space-y-1">
+          <ExportBtn onClick={handleCopyNewOutlook} icon="📋" label="Kopiuj jako treść maila" variant="cyan" />
+          <ExportBtn onClick={handleExportEMLNewOutlook} icon="📧" label="Pobierz .EML do otwarcia/importu" variant="cyan" />
+          <ExportBtn onClick={handleCopySignature} icon="✍️" label="Kopiuj jako podpis" variant="cyan" />
+          <ExportBtn onClick={onShowOutlookHelp} icon="❓" label="Instrukcja krok po kroku" variant="ghost" />
+        </div>
+      </ExportSection>
+
+      <ExportSection
         icon="🖥️"
-        title="Klasyczny Outlook"
-        subtitle="Desktop 2007-2019"
+        title="Klasyczny Outlook — opcjonalnie"
+        subtitle="legacy desktop"
         borderColor="border-blue-500/15"
         bgColor="bg-blue-900/8"
       >
         <div className="mb-1.5 rounded-lg border-l-2 border-blue-400/30 bg-black/20 p-1.5 text-[8px] leading-relaxed text-gray-400">
-          <strong className="mb-0.5 block text-[9px] text-[#feed01]">💡 Edytowanie przed wysyłką</strong>
-          Ten tryb tworzy wiadomość jako draft .EML. Po otwarciu w klasycznym Outlooku możesz edytować treść, temat, odbiorców i dopiero wtedy wysłać.
+          <strong className="mb-0.5 block text-[9px] text-[#feed01]">Opcja tylko dla klasycznego Outlooka</strong>
+          Draft .EML jest przydatny w klasycznym Outlooku Desktop. Dla nowego Outlooka używaj przede wszystkim kopiowania jako treść maila.
         </div>
 
         <div className="space-y-1">
           <ExportBtn onClick={handleExportEditableDraft} icon="📧" label="Edytuj przed wysyłką (.EML draft)" variant="blue" />
           <ExportBtn onClick={handleExportMHT} icon="📄" label="Pobierz .MHT" variant="ghost" />
-        </div>
-      </ExportSection>
-
-      <ExportSection
-        icon="✨"
-        title="Nowy Outlook"
-        subtitle="Windows 11 / Web"
-        borderColor="border-cyan-500/15"
-        bgColor="bg-cyan-900/8"
-      >
-        <div className="mb-1.5 rounded-lg border-l-2 border-yellow-400/30 bg-black/20 p-1.5 text-[8px] leading-relaxed text-gray-400">
-          <strong className="mb-0.5 block text-[9px] text-yellow-400">ℹ️ Ograniczenie nowego Outlooka</strong>
-          Nowy Outlook nie obsługuje stabilnie edytowalnych draftów .EML jak klasyczna wersja. Tutaj najlepiej działa kopiowanie treści do nowej wiadomości lub "Moje szablony".
-        </div>
-
-        <div className="space-y-1">
-          <ExportBtn onClick={handleExportEMLNewOutlook} icon="📧" label="Pobierz .EML do otwarcia" variant="cyan" />
-          <ExportBtn onClick={handleCopyNewOutlook} icon="📋" label='Kopiuj do nowej wiadomości / "Moje szablony"' variant="cyan" />
-          <ExportBtn onClick={handleCopySignature} icon="✍️" label="Kopiuj jako podpis" variant="cyan" />
-          <ExportBtn onClick={onShowOutlookHelp} icon="❓" label="Instrukcja krok po kroku" variant="ghost" />
         </div>
       </ExportSection>
 

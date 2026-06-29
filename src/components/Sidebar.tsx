@@ -682,20 +682,39 @@ function ExportTab(props: {
     <>
   <AuditPanel audit={audit} />
 
-  {/* Classic Outlook */}
-  <div className="border-2 border-[#0078d4] rounded-lg p-3 mb-2 bg-[#0078d4]/5">
+  {/* New Outlook - recommended */}
+  <div className="border-2 border-[#00bcf2] rounded-lg p-3 mb-2 bg-[#00bcf2]/5">
     <h4 className="text-white text-[11px] font-bold mb-2 flex items-center gap-2">
-      🖥️ Klasyczny Outlook
-      <span className="text-[8px] bg-[#0078d4] text-white px-1.5 py-0.5 rounded-full font-normal">2007-2019</span>
+      ✨ Nowy Outlook — zalecane
+      <span className="text-[8px] bg-gradient-to-r from-[#0078d4] to-[#00bcf2] text-white px-1.5 py-0.5 rounded-full font-normal">Windows / Web</span>
+    </h4>
+
+    <div className="bg-[#1a1a2e] border-l-[3px] border-[#00bcf2] p-2 rounded-r-md mb-2">
+      <p className="text-[#00bcf2] text-[10px] font-bold">Najstabilniejszy workflow w nowym Outlooku</p>
+      <ol className="text-[9px] text-gray-500 mt-1 list-decimal ml-3 space-y-0.5">
+        <li>Kliknij <strong>Kopiuj jako treść maila</strong>.</li>
+        <li>Utwórz nową wiadomość w Outlooku.</li>
+        <li>Wklej zawartość skrótem <strong>Ctrl+V</strong>.</li>
+        <li>Edytuj tekst/odbiorców bez używania <strong>Prześlij dalej</strong>.</li>
+      </ol>
+    </div>
+
+    <Btn variant="outlook-new" onClick={props.onCopyForNewOutlook}>📋 Kopiuj jako treść maila</Btn>
+    <Btn variant="outlook" onClick={props.onExportEML}>📧 Pobierz .EML do otwarcia/importu</Btn>
+    <Btn variant="outlook-new" onClick={props.onCopyAsSignature}>✍️ Kopiuj jako podpis</Btn>
+    <Btn variant="secondary" onClick={props.onShowOutlookHelp}>❓ Instrukcja krok po kroku</Btn>
+  </div>
+
+  {/* Legacy / Classic Outlook */}
+  <div className="border border-[#0078d4]/25 rounded-lg p-3 mb-2 bg-[#0078d4]/5">
+    <h4 className="text-white text-[11px] font-bold mb-2 flex items-center gap-2">
+      🖥️ Klasyczny Outlook — opcjonalnie
+      <span className="text-[8px] bg-[#0078d4] text-white px-1.5 py-0.5 rounded-full font-normal">legacy</span>
     </h4>
 
     <div className="bg-[#1a1a2e] border-l-[3px] border-[#0078d4] p-2 rounded-r-md mb-2">
-      <p className="text-[#feed01] text-[10px] font-bold mb-1">📋 Jak użyć w klasycznym Outlooku:</p>
-      <ol className="text-[9px] text-gray-400 list-decimal ml-3 space-y-0.5">
-        <li>Pobierz .EML draft i otwórz go w klasycznym Outlooku.</li>
-        <li>Możesz edytować temat, odbiorców i treść przed wysyłką.</li>
-        <li>Lokalnie wgrane obrazy są osadzane jako CID, żeby nie puchły w treści HTML.</li>
-      </ol>
+      <p className="text-[#feed01] text-[10px] font-bold mb-1">Tylko jeśli ktoś pracuje na klasycznym Outlooku Desktop</p>
+      <p className="text-[9px] text-gray-500">.EML draft służy do edycji przed wysyłką w klasycznym Outlooku. W nowym Outlooku priorytetem jest kopiowanie treści do nowej wiadomości.</p>
     </div>
 
     <Btn variant="outlook" onClick={props.onExportEMLDraft}>
@@ -704,28 +723,6 @@ function ExportTab(props: {
     <Btn variant="outlook" onClick={props.onExportMHT}>
       📄 Pobierz .MHT
     </Btn>
-  </div>
-
-  {/* New Outlook */}
-  <div className="border-2 border-[#00bcf2] rounded-lg p-3 mb-2 bg-[#00bcf2]/5">
-    <h4 className="text-white text-[11px] font-bold mb-2 flex items-center gap-2">
-      ✨ Nowy Outlook
-      <span className="text-[8px] bg-gradient-to-r from-[#0078d4] to-[#00bcf2] text-white px-1.5 py-0.5 rounded-full font-normal">Win 11 / Web</span>
-    </h4>
-
-    <div className="bg-[#1a1a2e] border-l-[3px] border-yellow-500 p-2 rounded-r-md mb-2">
-      <p className="text-yellow-400 text-[10px] font-bold">ℹ️ Nowy Outlook obsługuje .EML, ale nie .OFT</p>
-      <p className="text-[9px] text-gray-500 mt-0.5">
-        Możesz otwierać/importować .EML albo użyć „Moje szablony” i podpisu HTML.
-      </p>
-    </div>
-
-    <Btn variant="outlook" onClick={props.onExportEML}>
-      📧 Pobierz .EML do nowego Outlooka
-    </Btn>
-    <Btn variant="outlook-new" onClick={props.onCopyForNewOutlook}>📋 Kopiuj jako treść maila / szablon</Btn>
-    <Btn variant="outlook-new" onClick={props.onCopyAsSignature}>✍️ Kopiuj jako podpis</Btn>
-    <Btn variant="secondary" onClick={props.onShowOutlookHelp}>❓ Instrukcja krok po kroku</Btn>
   </div>
 
   {/* Universal exports */}

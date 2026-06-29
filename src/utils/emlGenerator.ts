@@ -127,6 +127,7 @@ export function generateEml(
         `Content-Type: ${attachment.mimeType}; name="${attachment.filename}"`,
         'Content-Transfer-Encoding: base64',
         `Content-ID: <${attachment.cid}>`,
+        `Content-Location: ${attachment.filename}`,
         `Content-Disposition: inline; filename="${attachment.filename}"`,
         '',
         attachment.base64,
