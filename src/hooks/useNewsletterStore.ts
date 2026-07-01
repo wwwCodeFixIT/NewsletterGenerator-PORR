@@ -21,6 +21,8 @@ const defaultState: NewsletterState = {
   footerTitle: 'Cieszymy się, że nas czytasz!',
   footerLeft: 'Espinacz to nasz tygodniowy newsletter firmowy.',
   footerRight: 'Masz pomysł lub uwagi? Napisz do nas!',
+  footerButtonText: 'Napisz do nas ✉️',
+  footerButtonUrl: 'mailto:komunikacja@porr.pl',
   contactEmail: 'komunikacja@porr.pl',
   facebookUrl: 'https://www.facebook.com/PorrSA',
   linkedinUrl: 'https://www.linkedin.com/company/28978817/',
@@ -129,6 +131,8 @@ export function useNewsletterStore() {
     merged.mainLinkEn = merged.mainLinkEn || '';
     merged.videoTitleEn = merged.videoTitleEn || '';
     merged.videoReadMoreEn = merged.videoReadMoreEn || '';
+    merged.footerButtonText = merged.footerButtonText || 'Napisz do nas ✉️';
+    merged.footerButtonUrl = merged.footerButtonUrl || `mailto:${merged.contactEmail || 'komunikacja@porr.pl'}`;
     setState(merged);
   }, []);
 

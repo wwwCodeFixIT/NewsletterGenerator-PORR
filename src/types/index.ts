@@ -54,6 +54,10 @@ export interface NewsletterState {
   footerTitle: string;
   footerLeft: string;
   footerRight: string;
+  /** Footer CTA button text. Defaults to "Napisz do nas ✉️" for older saved projects. */
+  footerButtonText: string;
+  /** Footer CTA href. Defaults to mailto:contactEmail for older saved projects. */
+  footerButtonUrl: string;
   contactEmail: string;
   facebookUrl: string;
   linkedinUrl: string;

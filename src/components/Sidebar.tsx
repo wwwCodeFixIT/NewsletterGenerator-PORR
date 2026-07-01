@@ -384,6 +384,8 @@ function ContentTab({ store }: { store: Store }) {
         <Input label="Tytuł" value={state.footerTitle} onChange={v => updateField('footerTitle', v)} />
         <TextArea label="Opis lewy" value={state.footerLeft} onChange={v => updateField('footerLeft', v)} />
         <TextArea label="Opis prawy" value={state.footerRight} onChange={v => updateField('footerRight', v)} />
+        <Input label="Tekst przycisku w stopce" value={state.footerButtonText || ''} onChange={v => updateField('footerButtonText', v)} placeholder="Napisz do nas ✉️" />
+        <Input label="Link przycisku w stopce" value={state.footerButtonUrl || ''} onChange={v => updateField('footerButtonUrl', v)} type="url" placeholder="mailto:komunikacja@porr.pl albo https://..." />
         <Input label="Email kontaktowy" value={state.contactEmail} onChange={v => updateField('contactEmail', v)} />
         <div className="grid grid-cols-2 gap-1.5">
           <Input label="Facebook" value={state.facebookUrl} onChange={v => updateField('facebookUrl', v)} type="url" />

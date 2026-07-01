@@ -19,6 +19,21 @@ function safeColor(value: string | undefined, fallback: string): string {
   return /^#[0-9a-f]{3,8}$/i.test(value || '') ? value as string : fallback;
 }
 
+function normalizeFooterButtonHref(rawHref: string | undefined, contactEmail: string | undefined): string {
+  const value = (rawHref || '').trim();
+  if (value) {
+    if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) return `mailto:${value}`;
+    return value;
+  }
+
+  const email = (contactEmail || '').trim();
+  return email ? `mailto:${email}` : '#';
+}
+
+function footerButtonText(value: string | undefined): string {
+  return (value || '').trim() || 'Napisz do nas ✉️';
+}
+
 function isUsableUrl(value: string | undefined): boolean {
   const normalized = (value || '').trim();
   return Boolean(normalized && normalized !== '#');
@@ -320,7 +335,7 @@ export function generateNewOutlookPasteHTML(state: NewsletterState): string {
   </tr>
   <tr>
     <td align="center" style="padding:0 25px 30px 25px;">
-      ${pasteButton(`mailto:${state.contactEmail}`, 'Napisz do nas ✉️', ac, btc, ff, 200, 42)}
+      ${pasteButton(normalizeFooterButtonHref(state.footerButtonUrl, state.contactEmail), footerButtonText(state.footerButtonText), ac, btc, ff, 200, 42)}
     </td>
   </tr>
 </table>`;

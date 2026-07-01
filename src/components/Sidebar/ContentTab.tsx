@@ -66,6 +66,8 @@ export function ContentTab({ state, update }: ContentTabProps) {
         <Input label="Tytuł" value={state.footerTitle} onChange={v => update({ footerTitle: v })} icon="✏️" />
         <TextArea label="Tekst lewy" value={state.footerLeft} onChange={v => update({ footerLeft: v })} rows={2} />
         <TextArea label="Tekst prawy" value={state.footerRight} onChange={v => update({ footerRight: v })} rows={2} />
+        <Input label="Tekst przycisku w stopce" value={state.footerButtonText || ''} onChange={v => update({ footerButtonText: v })} placeholder="Napisz do nas ✉️" icon="🔘" />
+        <Input label="Link przycisku w stopce" value={state.footerButtonUrl || ''} onChange={v => update({ footerButtonUrl: v })} type="url" placeholder="mailto:komunikacja@porr.pl albo https://..." icon="🔗" />
         <Input label="Email kontaktowy" value={state.contactEmail} onChange={v => update({ contactEmail: v })} icon="📧" />
         <div className="grid grid-cols-2 gap-1">
           <Input label="Facebook" value={state.facebookUrl} onChange={v => update({ facebookUrl: v })} type="url" />

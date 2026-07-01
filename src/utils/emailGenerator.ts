@@ -26,6 +26,21 @@ function safeColor(color: string, fallback: string): string {
   return /^#[0-9a-f]{3,8}$/i.test(color || '') ? color : fallback;
 }
 
+function normalizeFooterButtonHref(rawHref: string | undefined, contactEmail: string | undefined): string {
+  const value = (rawHref || '').trim();
+  if (value) {
+    if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) return `mailto:${value}`;
+    return value;
+  }
+
+  const email = (contactEmail || '').trim();
+  return email ? `mailto:${email}` : '#';
+}
+
+function footerButtonText(value: string | undefined): string {
+  return (value || '').trim() || 'Napisz do nas ✉️';
+}
+
 function vmlButton(
   href: string,
   text: string,
@@ -424,7 +439,7 @@ export function generateEmailHTML(s: NewsletterState): string {
   </tr>
   <tr>
     <td align="center" style="padding:20px 25px 30px 25px;" bgcolor="${pc}">
-      ${vmlButton(`mailto:${s.contactEmail}`, 'Napisz do nas ✉️', ac, btc, ff, 200, 44)}
+      ${vmlButton(normalizeFooterButtonHref(s.footerButtonUrl, s.contactEmail), footerButtonText(s.footerButtonText), ac, btc, ff, 200, 44)}
     </td>
   </tr>
 </table>`;
