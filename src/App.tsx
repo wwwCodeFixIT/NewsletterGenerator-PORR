@@ -42,28 +42,29 @@ export function App() {
   const [showSaveToLibrary, setShowSaveToLibrary] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  const html = generateEmailHTML(store.state);
+  const outlookHtml = generateNewOutlookPasteHTML(store.state);
+  const emailHtml = generateEmailHTML(store.state);
 
   const handleTabChange = useCallback((tab: TabId) => {
     setActiveTab(tab);
   }, []);
 
   const handleExportHTML = useCallback(() => {
-  downloadFile(html, 'newsletter.html', 'text/html;charset=utf-8', true);
+  downloadFile(outlookHtml, 'newsletter.html', 'text/html;charset=utf-8', true);
   notify('✅ HTML pobrany!');
-}, [html, notify]);
+}, [outlookHtml, notify]);
 
   const handleExportEML = useCallback(() => {
-    const eml = generateEml(html, store.state, { draftMode: false });
+    const eml = generateEml(emailHtml, store.state, { draftMode: false });
     downloadFile(eml, 'newsletter.eml', 'message/rfc822');
     notify('📧 EML pobrany! Otwórz/importuj w nowym Outlooku. Do edycji najstabilniej użyj kopiowania treści do nowej wiadomości.', 'info');
-  }, [html, store.state, notify]);
+  }, [emailHtml, store.state, notify]);
 
   const handleExportEMLDraft = useCallback(() => {
-    const eml = generateEml(html, store.state, { draftMode: true });
+    const eml = generateEml(emailHtml, store.state, { draftMode: true });
     downloadFile(eml, 'newsletter-draft.eml', 'message/rfc822');
     notify('📧 EML draft pobrany! Otwórz w klasycznym Outlooku i edytuj przed wysyłką.', 'info');
-  }, [html, store.state, notify]);
+  }, [emailHtml, store.state, notify]);
 
   const handleExportMHT = useCallback(() => {
   const boundary = '----=_NextPart_' + Date.now();
@@ -78,20 +79,20 @@ export function App() {
     'Content-Transfer-Encoding: 8bit',
     'Content-Location: file:///newsletter.html',
     '',
-    html,
+    emailHtml,
     '',
     `--${boundary}--`,
   ].join('\r\n');
 
   downloadFile(mht, 'newsletter.mht', 'message/rfc822');
   notify('📄 MHT pobrany!');
-}, [html, store.state.issueNumber, notify]);
+}, [emailHtml, store.state.issueNumber, notify]);
 
   const handleCopyHTML = useCallback(() => {
-    copyPlainHtmlSource(html)
+    copyPlainHtmlSource(outlookHtml)
       .then(() => notify('📋 Kod HTML skopiowany do schowka!'))
       .catch(() => notify('❌ Nie udało się skopiować HTML. Sprawdź uprawnienia schowka.', 'error'));
-  }, [html, notify]);
+  }, [outlookHtml, notify]);
 
   const handleCopyForNewOutlook = useCallback(() => {
     const pasteHtml = generateNewOutlookPasteHTML(store.state);
@@ -118,10 +119,10 @@ export function App() {
   }, [store.state, notify]);
 
   const handleOpenInNewTab = useCallback(() => {
-    const url = URL.createObjectURL(new Blob([html], { type: 'text/html;charset=utf-8' }));
+    const url = URL.createObjectURL(new Blob([outlookHtml], { type: 'text/html;charset=utf-8' }));
     window.open(url, '_blank', 'noopener,noreferrer');
     window.setTimeout(() => URL.revokeObjectURL(url), 10000);
-  }, [html]);
+  }, [outlookHtml]);
 
   const handleSaveProject = useCallback(() => {
   try {
@@ -328,7 +329,7 @@ export function App() {
         />
 
         <Preview
-          html={html}
+          html={outlookHtml}
           activeDevice={activeDevice}
           previewWidth={previewWidth}
           onDeviceChange={handleDeviceChange}
@@ -339,7 +340,7 @@ export function App() {
       <Notifications notifications={notifications} onDismiss={dismiss} />
 
       {showHelp && <HelpModal onClose={() => setShowHelp(false)} />}
-      {showCode && <CodeModal html={html} onClose={() => setShowCode(false)} onCopy={handleCopyHTML} />}
+      {showCode && <CodeModal html={outlookHtml} onClose={() => setShowCode(false)} onCopy={handleCopyHTML} />}
       {showTemplates && <TemplatesModal onClose={() => setShowTemplates(false)} onLoad={handleLoadTemplate} />}
       {showOutlookHelp && <OutlookHelpModal onClose={() => setShowOutlookHelp(false)} />}
       {showLibrary && (

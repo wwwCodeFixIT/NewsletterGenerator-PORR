@@ -62,6 +62,8 @@ function imageSource(value: string | undefined): string {
 }
 
 function bgStyle(color: string): string {
+  // Outlook / New Outlook w trybie ciemnym potrafi przepisywać kolory.
+  // background-image z jednolitym gradientem + bgcolor + inline background-color daje najstabilniejszy efekt po wklejeniu.
   return `background-color:${color};background:${color};background-image:linear-gradient(${color},${color});color-scheme:light only;forced-color-adjust:none;`;
 }
 
@@ -70,6 +72,8 @@ function textStyle(color: string): string {
 }
 
 function strictTextStyle(color: string): string {
+  // Nowy Outlook potrafi przemalować tekst przy wklejaniu, szczególnie na ciemnym tle.
+  // !important + -webkit-text-fill-color + fallback <font color> zwiększają stabilność kontrastu.
   return `color:${color} !important;-webkit-text-fill-color:${color} !important;mso-style-textfill-fill-color:${color};`;
 }
 
@@ -95,7 +99,6 @@ function pasteButton(
   </tr>
 </table></a>`;
 }
-
 function dualButtons(
   plHref: string | undefined,
   enHref: string | undefined,
