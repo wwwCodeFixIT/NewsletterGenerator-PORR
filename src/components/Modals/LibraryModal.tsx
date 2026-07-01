@@ -1,208 +1,218 @@
-import { useState } from 'react';
-import type { SavedProject, NotificationType } from '@/types';
+import { useEffect, useState } from 'react';
+import type { NewsletterState, NotificationType } from '@/types';
+import {
+  deleteRemoteProject,
+  getRemoteProject,
+  listRemoteProjects,
+  listRemoteProjectVersions,
+  type RemoteProjectSummary,
+  type RemoteProjectVersion,
+} from '@/utils/remoteLibrary';
 import { Modal } from './Modal';
-import { formatBytes } from '@/utils/format';
 
 interface LibraryModalProps {
   onClose: () => void;
-  defaultName: string;
-  getLibrary: () => SavedProject[];
-  getLibraryStats: () => { count: number; bytes: number };
-  saveToLibrary: (name: string) => boolean;
-  loadFromLibrary: (id: string) => boolean;
-  deleteFromLibrary: (id: string) => void;
-  renameLibraryEntry: (id: string, name: string) => boolean;
+  onLoad: (state: NewsletterState) => void;
   notify: (msg: string, type?: NotificationType) => void;
 }
 
-// Przeglądarki nie udostępniają realnego limitu localStorage — to orientacyjny,
-// konserwatywny szacunek (Safari bywa bliżej 5 MB, Chrome/Firefox często więcej).
-const ESTIMATED_QUOTA_BYTES = 5 * 1024 * 1024;
+const ADMIN_TOKEN_KEY = 'porr_newsletter_admin_token';
 
-function formatDate(iso: string): string {
+function formatDate(value: string): string {
   try {
-    return new Date(iso).toLocaleString('pl', { dateStyle: 'medium', timeStyle: 'short' });
-  } catch {
-    return iso;
+    return new Intl.DateTimeFormat('pl-PL', {
+      dateStyle: 'short',
+      timeStyle: 'short',
+    }).format(new Date(value));
+  } catch (_error) {
+    return value;
   }
 }
 
-export function LibraryModal({
-  onClose,
-  defaultName,
-  getLibrary,
-  getLibraryStats,
-  saveToLibrary,
-  loadFromLibrary,
-  deleteFromLibrary,
-  renameLibraryEntry,
-  notify,
-}: LibraryModalProps) {
-  const [library, setLibrary] = useState<SavedProject[]>(() => getLibrary());
-  const [stats, setStats] = useState(() => getLibraryStats());
-  const [saveName, setSaveName] = useState(defaultName || 'Bez nazwy');
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [editingName, setEditingName] = useState('');
+export function LibraryModal({ onClose, onLoad, notify }: LibraryModalProps) {
+  const [projects, setProjects] = useState<RemoteProjectSummary[]>([]);
+  const [versions, setVersions] = useState<Record<string, RemoteProjectVersion[]>>({});
+  const [adminToken, setAdminToken] = useState(() => localStorage.getItem(ADMIN_TOKEN_KEY) || '');
+  const [isLoading, setIsLoading] = useState(true);
+  const [activeType, setActiveType] = useState<'all' | 'template' | 'project'>('all');
 
-  const refresh = () => {
-    setLibrary(getLibrary());
-    setStats(getLibraryStats());
-  };
-
-  const usagePercent = Math.min(100, Math.round((stats.bytes / ESTIMATED_QUOTA_BYTES) * 100));
-  const usageColor = usagePercent >= 85 ? 'bg-red-500' : usagePercent >= 60 ? 'bg-amber-500' : 'bg-[#00d9a5]';
-
-  const handleSave = () => {
-    const ok = saveToLibrary(saveName);
-    if (ok) {
-      notify(`📚 Projekt „${saveName.trim() || 'Bez nazwy'}” zapisany w bibliotece!`);
-      refresh();
-      const updated = getLibraryStats();
-      if (updated.bytes / ESTIMATED_QUOTA_BYTES >= 0.85) {
-        notify('⚠️ Biblioteka zajmuje już większość szacowanego limitu pamięci przeglądarki. Rozważ usunięcie starych projektów.', 'warning');
-      }
-    } else {
-      notify('❌ Brak miejsca w pamięci przeglądarki. Usuń stare projekty z biblioteki albo użyj mniej lokalnie wgranych obrazów.', 'error');
+  const loadProjects = async () => {
+    setIsLoading(true);
+    try {
+      setProjects(await listRemoteProjects());
+    } catch (error) {
+      notify(error instanceof Error ? error.message : 'Nie udało się pobrać biblioteki projektów.', 'error');
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const handleLoad = (p: SavedProject) => {
-    if (loadFromLibrary(p.id)) {
-      notify(`✅ Wczytano projekt „${p.name}”!`);
+  useEffect(() => {
+    void loadProjects();
+  }, []);
+
+  const filteredProjects = projects.filter((project) => activeType === 'all' || project.type === activeType);
+
+  const handleLoad = async (id: string) => {
+    try {
+      const project = await getRemoteProject(id);
+      onLoad(project.data);
+      notify(`Wczytano: ${project.title}`, 'success');
       onClose();
-    } else {
-      notify('❌ Nie udało się wczytać tego projektu.', 'error');
+    } catch (error) {
+      notify(error instanceof Error ? error.message : 'Nie udało się wczytać projektu.', 'error');
     }
   };
 
-  const handleDelete = (p: SavedProject) => {
-    if (confirm(`Usunąć projekt „${p.name}” z biblioteki?\nTej operacji nie można odwrócić.`)) {
-      deleteFromLibrary(p.id);
-      notify('🗑️ Projekt usunięty z biblioteki.');
-      refresh();
+  const handleDelete = async (project: RemoteProjectSummary) => {
+    if (!confirm(`Usunąć ze wspólnej biblioteki: ${project.title}?`)) {
+      return;
+    }
+
+    try {
+      if (adminToken.trim()) {
+        localStorage.setItem(ADMIN_TOKEN_KEY, adminToken.trim());
+      }
+
+      await deleteRemoteProject(project.id, adminToken);
+      notify('Projekt usunięty ze wspólnej biblioteki.', 'success');
+      await loadProjects();
+    } catch (error) {
+      notify(error instanceof Error ? error.message : 'Nie udało się usunąć projektu.', 'error');
     }
   };
 
-  const startRename = (p: SavedProject) => {
-    setEditingId(p.id);
-    setEditingName(p.name);
+  const handleVersions = async (projectId: string) => {
+    if (versions[projectId]) {
+      setVersions((prev) => {
+        const next = { ...prev };
+        delete next[projectId];
+        return next;
+      });
+      return;
+    }
+
+    try {
+      const result = await listRemoteProjectVersions(projectId);
+      setVersions((prev) => ({ ...prev, [projectId]: result }));
+    } catch (error) {
+      notify(error instanceof Error ? error.message : 'Nie udało się pobrać historii wersji.', 'error');
+    }
   };
 
-  const confirmRename = (p: SavedProject) => {
-    if (renameLibraryEntry(p.id, editingName)) {
-      notify('✏️ Nazwa zmieniona.');
-      refresh();
-    }
-    setEditingId(null);
+  const handleLoadVersion = (version: RemoteProjectVersion) => {
+    onLoad(version.data);
+    notify(`Wczytano wersję z ${formatDate(version.createdAt)}`, 'success');
+    onClose();
   };
 
   return (
-    <Modal title="📚 Biblioteka projektów" onClose={onClose} maxWidth="max-w-2xl">
-      {/* Wykorzystanie pamięci */}
-      <div className="mb-4 rounded-xl border border-white/[0.06] bg-white/[0.02] p-3">
-        <div className="mb-1.5 flex items-center justify-between text-[10px]">
-          <span className="font-medium text-gray-400">Wykorzystanie pamięci przeglądarki</span>
-          <span className="font-bold text-white">{formatBytes(stats.bytes)} <span className="text-gray-500">/ ~5 MB (orientacyjnie)</span></span>
+    <Modal title="📚 Wspólna biblioteka projektów" onClose={onClose} maxWidth="max-w-5xl">
+      <div className="space-y-4">
+        <div className="rounded-lg border border-[#feed01]/20 bg-[#feed01]/5 p-3 text-[12px] text-gray-300">
+          To jest biblioteka współdzielona. Po wdrożeniu Cloudflare D1 wszyscy użytkownicy tego samego linku zobaczą tę samą listę projektów i szablonów.
         </div>
-        <div className="h-1.5 w-full overflow-hidden rounded-full bg-black/30">
-          <div className={`h-full rounded-full transition-all ${usageColor}`} style={{ width: `${usagePercent}%` }} />
-        </div>
-        <p className="mt-1 text-[8px] text-gray-600">
-          {stats.count}/25 zapisanych projektów. Realny limit zależy od przeglądarki — to tylko orientacyjny szacunek.
-        </p>
-      </div>
 
-      {/* Zapis bieżącego projektu */}
-      <div className="mb-4 rounded-xl border border-[#feed01]/20 bg-[#feed01]/5 p-3">
-        <p className="mb-2 text-xs font-bold text-[#feed01]">💾 Zapisz obecny projekt w bibliotece</p>
-        <div className="flex gap-2">
-          <input
-            type="text"
-            value={saveName}
-            onChange={e => setSaveName(e.target.value)}
-            placeholder="Nazwa projektu..."
-            className="flex-1 rounded-lg border border-[#253555] bg-[#1a1a2e] px-3 py-2 text-sm text-white focus:border-[#feed01] focus:outline-none"
-          />
-          <button
-            onClick={handleSave}
-            className="rounded-lg bg-[#feed01] px-4 py-2 text-sm font-bold text-[#143e70] hover:shadow-lg hover:shadow-[#feed01]/20 transition-all active:scale-95"
-          >
-            Zapisz
+        <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+          <div className="flex rounded-lg bg-[#1a1a2e] p-1">
+            {[
+              ['all', 'Wszystkie'],
+              ['template', 'Szablony'],
+              ['project', 'Projekty'],
+            ].map(([id, label]) => (
+              <button
+                key={id}
+                type="button"
+                onClick={() => setActiveType(id as 'all' | 'template' | 'project')}
+                className={`rounded-md px-3 py-1.5 text-[11px] font-bold transition-colors ${activeType === id ? 'bg-[#feed01] text-[#143e70]' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+
+          <div className="w-full md:w-72">
+            <label className="mb-1 block text-[9px] font-bold uppercase tracking-wider text-gray-500">PIN / token administratora do usuwania</label>
+            <input
+              type="password"
+              value={adminToken}
+              onChange={(event) => setAdminToken(event.target.value)}
+              className="w-full rounded-md border border-[#253555] bg-[#1a1a2e] px-3 py-2 text-[12px] text-white outline-none focus:border-[#feed01]"
+            />
+          </div>
+        </div>
+
+        {isLoading ? (
+          <div className="rounded-xl border border-[#253555] bg-[#1a1a2e] p-8 text-center text-sm text-gray-400">Ładowanie biblioteki…</div>
+        ) : filteredProjects.length === 0 ? (
+          <div className="rounded-xl border border-[#253555] bg-[#1a1a2e] p-8 text-center text-sm text-gray-400">
+            Brak projektów w tej kategorii albo API biblioteki nie jest jeszcze skonfigurowane.
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {filteredProjects.map((project) => (
+              <div key={project.id} className="rounded-xl border border-[#253555] bg-[#1a1a2e] p-3">
+                <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                  <div className="min-w-0">
+                    <div className="mb-1 flex items-center gap-2">
+                      <span className={`rounded-full px-2 py-0.5 text-[8px] font-bold uppercase ${project.type === 'template' ? 'bg-[#00bcf2] text-white' : 'bg-[#feed01] text-[#143e70]'}`}>
+                        {project.type === 'template' ? 'Szablon' : 'Projekt'}
+                      </span>
+                      <span className="text-[10px] text-gray-500">{project.slug}</span>
+                    </div>
+                    <h4 className="truncate text-sm font-bold text-white">{project.title}</h4>
+                    <p className="mt-1 text-[10px] text-gray-500">Aktualizacja: {formatDate(project.updatedAt)}</p>
+                  </div>
+
+                  <div className="flex shrink-0 flex-wrap gap-1.5">
+                    <button type="button" onClick={() => handleLoad(project.id)} className="rounded-md bg-[#feed01] px-3 py-1.5 text-[10px] font-bold text-[#143e70] hover:brightness-110">
+                      Wczytaj
+                    </button>
+                    <button type="button" onClick={() => handleVersions(project.id)} className="rounded-md bg-[#143e70] px-3 py-1.5 text-[10px] font-bold text-white hover:bg-[#1a5a90]">
+                      Historia
+                    </button>
+                    <button type="button" onClick={() => handleDelete(project)} className="rounded-md bg-red-500/15 px-3 py-1.5 text-[10px] font-bold text-red-300 hover:bg-red-500/25">
+                      Usuń
+                    </button>
+                  </div>
+                </div>
+
+                {versions[project.id] && (
+                  <div className="mt-3 rounded-lg bg-black/20 p-2">
+                    <h5 className="mb-2 text-[10px] font-bold uppercase tracking-wider text-gray-400">Historia wersji</h5>
+                    <div className="max-h-48 space-y-1 overflow-y-auto">
+                      {versions[project.id].length === 0 ? (
+                        <p className="text-[10px] text-gray-500">Brak zapisanych wersji.</p>
+                      ) : (
+                        versions[project.id].map((version) => (
+                          <button
+                            key={version.id}
+                            type="button"
+                            onClick={() => handleLoadVersion(version)}
+                            className="flex w-full items-center justify-between rounded-md bg-white/[0.03] px-2 py-1.5 text-left text-[10px] text-gray-300 hover:bg-white/[0.06]"
+                          >
+                            <span className="truncate">{version.title}</span>
+                            <span className="ml-3 shrink-0 text-gray-500">{formatDate(version.createdAt)}</span>
+                          </button>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+
+        <div className="flex justify-between border-t border-[#253555] pt-4">
+          <button type="button" onClick={loadProjects} className="rounded-md bg-[#143e70] px-4 py-2 text-[12px] font-bold text-white hover:bg-[#1a5a90]">
+            Odśwież
+          </button>
+          <button type="button" onClick={onClose} className="rounded-md bg-white/5 px-4 py-2 text-[12px] font-bold text-gray-300 hover:bg-white/10">
+            Zamknij
           </button>
         </div>
       </div>
-
-      {/* Lista zapisanych projektów */}
-      {library.length === 0 ? (
-        <div className="py-8 text-center text-gray-500">
-          <div className="mb-2 text-3xl">📭</div>
-          <p className="text-sm">Biblioteka jest pusta. Zapisz pierwszy projekt powyżej.</p>
-        </div>
-      ) : (
-        <div className="space-y-2">
-          {library.map(p => (
-            <div key={p.id} className="rounded-lg border border-[#253555] bg-[#1a1a2e] p-3">
-              <div className="flex items-center justify-between gap-2">
-                {editingId === p.id ? (
-                  <input
-                    type="text"
-                    value={editingName}
-                    onChange={e => setEditingName(e.target.value)}
-                    onKeyDown={e => { if (e.key === 'Enter') confirmRename(p); if (e.key === 'Escape') setEditingId(null); }}
-                    autoFocus
-                    className="flex-1 rounded border border-[#feed01]/40 bg-[#0d1b2a] px-2 py-1 text-sm text-white focus:outline-none"
-                  />
-                ) : (
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-semibold text-white">{p.name}</p>
-                    <p className="text-[10px] text-gray-500">
-                      {formatDate(p.savedAt)} • {p.state.articles.length} artykuł{p.state.articles.length === 1 ? '' : 'ów'}
-                    </p>
-                  </div>
-                )}
-
-                <div className="flex shrink-0 gap-1">
-                  {editingId === p.id ? (
-                    <button
-                      onClick={() => confirmRename(p)}
-                      className="rounded-md bg-[#00d9a5] px-2 py-1 text-[10px] font-bold text-white hover:bg-[#00c495]"
-                    >
-                      ✓ Zapisz
-                    </button>
-                  ) : (
-                    <>
-                      <button
-                        onClick={() => handleLoad(p)}
-                        className="rounded-md bg-[#0078d4] px-2 py-1 text-[10px] font-bold text-white hover:bg-[#006abc]"
-                      >
-                        📂 Wczytaj
-                      </button>
-                      <button
-                        onClick={() => startRename(p)}
-                        aria-label="Zmień nazwę"
-                        className="rounded-md border border-[#253555] px-2 py-1 text-[10px] text-gray-300 hover:bg-white/5"
-                      >
-                        ✏️
-                      </button>
-                      <button
-                        onClick={() => handleDelete(p)}
-                        aria-label="Usuń projekt"
-                        className="rounded-md border border-[#253555] px-2 py-1 text-[10px] text-gray-300 hover:border-red-500/40 hover:bg-red-500/10 hover:text-red-400"
-                      >
-                        🗑️
-                      </button>
-                    </>
-                  )}
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-
-      <p className="mt-4 text-[10px] text-gray-600">
-        Do przenoszenia projektów między urządzeniami użyj eksportu/importu .json w zakładce Eksport.
-      </p>
     </Modal>
   );
 }

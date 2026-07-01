@@ -7,7 +7,11 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "cf:dev": "npm run build && npx wrangler pages dev dist --local",
+    "db:create": "npx wrangler d1 create porr-newsletter-generator",
+    "db:migrate:local": "npx wrangler d1 migrations apply porr-newsletter-generator --local",
+    "db:migrate:remote": "npx wrangler d1 migrations apply porr-newsletter-generator --remote"
   },
   "dependencies": {
     "clsx": "2.1.1",

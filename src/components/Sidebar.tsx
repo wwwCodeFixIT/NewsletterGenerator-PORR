@@ -13,6 +13,8 @@ export interface SidebarProps {
   onNewProject: () => void;
   onSaveProject: () => void;
   onShowTemplates: () => void;
+  onShowLibrary: () => void;
+  onShowSaveToLibrary: () => void;
   onLoadProjectFromFile: (file: File) => void;
   onExportHTML: () => void;
   onExportEML: () => void;
@@ -671,6 +673,8 @@ function ExportTab(props: {
   onSaveProjectToFile: () => void;
   onLoadProjectFromFile: (file: File) => void;
   onShowOutlookHelp: () => void;
+  onShowLibrary: () => void;
+  onShowSaveToLibrary: () => void;
 }) {
   const importRef = useRef<HTMLInputElement>(null);
   const audit = useMemo(() => {
@@ -692,14 +696,14 @@ function ExportTab(props: {
     <div className="bg-[#1a1a2e] border-l-[3px] border-[#00bcf2] p-2 rounded-r-md mb-2">
       <p className="text-[#00bcf2] text-[10px] font-bold">Najstabilniejszy workflow w nowym Outlooku</p>
       <ol className="text-[9px] text-gray-500 mt-1 list-decimal ml-3 space-y-0.5">
-        <li>Kliknij <strong>Kopiuj jako treść maila</strong>.</li>
+        <li>Kliknij <strong>Kopiuj jako treść maila</strong> — generator użyje uproszczonej wersji paste-safe.</li>
         <li>Utwórz nową wiadomość w Outlooku.</li>
         <li>Wklej zawartość skrótem <strong>Ctrl+V</strong>.</li>
         <li>Edytuj tekst/odbiorców bez używania <strong>Prześlij dalej</strong>.</li>
       </ol>
     </div>
 
-    <Btn variant="outlook-new" onClick={props.onCopyForNewOutlook}>📋 Kopiuj jako treść maila</Btn>
+    <Btn variant="outlook-new" onClick={props.onCopyForNewOutlook}>📋 Kopiuj jako treść maila (paste-safe)</Btn>
     <Btn variant="outlook" onClick={props.onExportEML}>📧 Pobierz .EML do otwarcia/importu</Btn>
     <Btn variant="outlook-new" onClick={props.onCopyAsSignature}>✍️ Kopiuj jako podpis</Btn>
     <Btn variant="secondary" onClick={props.onShowOutlookHelp}>❓ Instrukcja krok po kroku</Btn>
@@ -735,6 +739,8 @@ function ExportTab(props: {
 
   {/* Project management */}
   <Section title="💾 ZARZĄDZANIE PROJEKTEM">
+    <Btn variant="success" onClick={props.onShowSaveToLibrary}>☁️ Zapisz we wspólnej bibliotece</Btn>
+    <Btn variant="secondary" onClick={props.onShowLibrary}>📚 Otwórz wspólną bibliotekę</Btn>
     <Btn variant="secondary" onClick={props.onSaveProjectToFile}>📦 Eksportuj projekt (.json)</Btn>
     <Btn variant="secondary" onClick={() => importRef.current?.click()}>📂 Importuj projekt</Btn>
     <input
@@ -751,7 +757,7 @@ function ExportTab(props: {
     <div className="bg-[#1a1a2e] border-l-[3px] border-[#00d9a5] p-2 rounded-r-md mt-2">
       <p className="text-[#00d9a5] text-[10px] font-bold mb-0.5">💡 Wskazówka</p>
       <p className="text-[9px] text-gray-500">
-        Pliki .json pozwalają udostępniać projekty newsletterów między użytkownikami.
+Wspólna biblioteka działa po wdrożeniu Cloudflare D1. Pliki .json zostają jako awaryjny eksport lokalny.
       </p>
     </div>
   </Section>
@@ -762,7 +768,7 @@ function ExportTab(props: {
 // ========== Main Sidebar Component ==========
 
 export function Sidebar(props: SidebarProps) {
-  const { store, activeTab, onTabChange, onNewProject, onSaveProject, onShowTemplates, onLoadProjectFromFile, isOpen, onClose } = props;
+  const { store, activeTab, onTabChange, onNewProject, onSaveProject, onShowTemplates, onShowLibrary, onShowSaveToLibrary, onLoadProjectFromFile, isOpen, onClose } = props;
   const loadRef = useRef<HTMLInputElement>(null);
 
   const recentProjects = store.getRecentProjects();
@@ -791,11 +797,13 @@ export function Sidebar(props: SidebarProps) {
       `}>
         {/* Quick actions bar */}
         <div className="flex-shrink-0 p-2 pb-0">
-          <div className="grid grid-cols-4 gap-1.5 mb-2">
+          <div className="grid grid-cols-3 gap-1.5 mb-2">
             {[
               { icon: '📄', label: 'Nowy', action: onNewProject },
               { icon: '📂', label: 'Otwórz', action: () => loadRef.current?.click() },
               { icon: '💾', label: 'Zapisz', action: onSaveProject },
+              { icon: '☁️', label: 'Cloud', action: onShowSaveToLibrary },
+              { icon: '📚', label: 'Biblioteka', action: onShowLibrary },
               { icon: '📋', label: 'Szablony', action: onShowTemplates },
             ].map(a => (
               <button
@@ -875,6 +883,8 @@ export function Sidebar(props: SidebarProps) {
               onSaveProjectToFile={props.onSaveProjectToFile}
               onLoadProjectFromFile={props.onLoadProjectFromFile}
               onShowOutlookHelp={props.onShowOutlookHelp}
+              onShowLibrary={props.onShowLibrary}
+              onShowSaveToLibrary={props.onShowSaveToLibrary}
             />
           )}
         </div>

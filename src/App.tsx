@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useNewsletterStore } from '@/hooks/useNewsletterStore';
 import { useNotification } from '@/hooks/useNotification';
 import { generateEmailHTML } from '@/utils/emailGenerator';
+import { generateNewOutlookPasteHTML, getNewOutlookPasteWarnings } from '@/utils/newOutlookPaste';
 import { generateEml } from '@/utils/emlGenerator';
 import { copyHtmlToClipboard, copyPlainHtmlSource } from '@/utils/clipboard';
 import { TopBar } from '@/components/TopBar';
@@ -12,6 +13,8 @@ import { HelpModal } from '@/components/Modals/HelpModal';
 import { CodeModal } from '@/components/Modals/CodeModal';
 import { TemplatesModal } from '@/components/Modals/TemplatesModal';
 import { OutlookHelpModal } from '@/components/Modals/OutlookHelpModal';
+import { LibraryModal } from '@/components/Modals/LibraryModal';
+import { SaveToLibraryModal } from '@/components/Modals/SaveToLibraryModal';
 import type { TabId, DeviceType } from '@/types';
 
 function downloadFile(content: string, filename: string, type: string, addBom = false) {
@@ -35,6 +38,8 @@ export function App() {
   const [showCode, setShowCode] = useState(false);
   const [showTemplates, setShowTemplates] = useState(false);
   const [showOutlookHelp, setShowOutlookHelp] = useState(false);
+  const [showLibrary, setShowLibrary] = useState(false);
+  const [showSaveToLibrary, setShowSaveToLibrary] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const html = generateEmailHTML(store.state);
@@ -89,16 +94,28 @@ export function App() {
   }, [html, notify]);
 
   const handleCopyForNewOutlook = useCallback(() => {
-    copyHtmlToClipboard(html)
-      .then(() => notify('📋 Skopiowano treść newslettera. W nowym Outlooku utwórz nową wiadomość i wklej Ctrl+V.', 'info'))
+    const pasteHtml = generateNewOutlookPasteHTML(store.state);
+    const warnings = getNewOutlookPasteWarnings(store.state);
+
+    copyHtmlToClipboard(pasteHtml)
+      .then(() => {
+        if (warnings.length > 0) {
+          notify(`📋 Skopiowano wersję paste-safe. Uwaga: ${warnings[0]}`, 'warning');
+          return;
+        }
+
+        notify('📋 Skopiowano wersję paste-safe. W nowym Outlooku utwórz nową wiadomość i wklej Ctrl+V.', 'info');
+      })
       .catch(() => notify('❌ Nie udało się skopiować treści HTML dla Outlooka.', 'error'));
-  }, [html, notify]);
+  }, [store.state, notify]);
 
   const handleCopyAsSignature = useCallback(() => {
-    copyHtmlToClipboard(html)
-      .then(() => notify('✍️ Skopiowano treść podpisu. Wklej w ustawieniach podpisu Outlooka.', 'info'))
+    const pasteHtml = generateNewOutlookPasteHTML(store.state);
+
+    copyHtmlToClipboard(pasteHtml)
+      .then(() => notify('✍️ Skopiowano uproszczoną treść HTML. Wklej w ustawieniach podpisu Outlooka.', 'info'))
       .catch(() => notify('❌ Nie udało się skopiować podpisu.', 'error'));
-  }, [html, notify]);
+  }, [store.state, notify]);
 
   const handleOpenInNewTab = useCallback(() => {
     const url = URL.createObjectURL(new Blob([html], { type: 'text/html;charset=utf-8' }));
@@ -291,6 +308,8 @@ export function App() {
           onNewProject={handleNewProject}
           onSaveProject={handleSaveProject}
           onShowTemplates={() => setShowTemplates(true)}
+          onShowLibrary={() => setShowLibrary(true)}
+          onShowSaveToLibrary={() => setShowSaveToLibrary(true)}
           onLoadProjectFromFile={handleLoadProjectFromFile}
           onExportHTML={handleExportHTML}
           onExportEML={handleExportEML}
@@ -323,6 +342,20 @@ export function App() {
       {showCode && <CodeModal html={html} onClose={() => setShowCode(false)} onCopy={handleCopyHTML} />}
       {showTemplates && <TemplatesModal onClose={() => setShowTemplates(false)} onLoad={handleLoadTemplate} />}
       {showOutlookHelp && <OutlookHelpModal onClose={() => setShowOutlookHelp(false)} />}
+      {showLibrary && (
+        <LibraryModal
+          onClose={() => setShowLibrary(false)}
+          onLoad={store.loadState}
+          notify={notify}
+        />
+      )}
+      {showSaveToLibrary && (
+        <SaveToLibraryModal
+          state={store.state}
+          onClose={() => setShowSaveToLibrary(false)}
+          notify={notify}
+        />
+      )}
     </div>
   );
 }
