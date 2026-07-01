@@ -68,13 +68,13 @@ function bgStyle(color: string): string {
 }
 
 function textStyle(color: string): string {
-  return `color:${color};-webkit-text-fill-color:${color};mso-style-textfill-fill-color:${color};`;
+  return `color:${color};-webkit-text-fill-color:${color};mso-style-textfill-fill-color:${color};mso-line-height-rule:exactly;`;
 }
 
 function strictTextStyle(color: string): string {
   // Nowy Outlook potrafi przemalować tekst przy wklejaniu, szczególnie na ciemnym tle.
   // !important + -webkit-text-fill-color + fallback <font color> zwiększają stabilność kontrastu.
-  return `color:${color} !important;-webkit-text-fill-color:${color} !important;mso-style-textfill-fill-color:${color};`;
+  return `color:${color} !important;-webkit-text-fill-color:${color} !important;mso-style-textfill-fill-color:${color};mso-line-height-rule:exactly;`;
 }
 
 function fontColor(color: string, value: string): string {
@@ -91,17 +91,11 @@ function pasteButton(
   const label = esc(text);
   const url = esc(safeHref(href));
 
-  return `<table role="presentation" border="0" cellpadding="0" cellspacing="0" align="${align}" style="border-collapse:collapse;mso-table-lspace:0pt;mso-table-rspace:0pt;text-decoration:none !important;">
+  return `<table role="presentation" border="0" cellpadding="0" cellspacing="0" align="${align}" style="border-collapse:collapse;mso-table-lspace:0pt;mso-table-rspace:0pt;">
   <tr>
-    <td align="center" valign="middle" bgcolor="${BRAND.accent}" style="${bgStyle(BRAND.accent)}border-radius:4px;padding:0;text-decoration:none !important;">
-      <a href="${url}" target="_blank" style="display:inline-block;min-width:${minWidth}px;padding:11px 18px;font-family:${fontFamily};font-size:13px;line-height:16px;font-weight:bold;color:${BRAND.text} !important;-webkit-text-fill-color:${BRAND.text} !important;text-decoration:none !important;text-decoration-line:none !important;-webkit-text-decoration-line:none !important;border:0 !important;outline:none !important;border-bottom:0 !important;">
-        <font color="${BRAND.text}" style="color:${BRAND.text} !important;-webkit-text-fill-color:${BRAND.text} !important;text-decoration:none !important;">
-          <span style="color:${BRAND.text} !important;-webkit-text-fill-color:${BRAND.text} !important;text-decoration:none !important;text-decoration-line:none !important;border-bottom:0 !important;">
-            <u style="text-decoration:none !important;text-decoration-line:none !important;border-bottom:0 !important;">
-              ${label}
-            </u>
-          </span>
-        </font>
+    <td align="center" valign="middle" bgcolor="${BRAND.accent}" style="${bgStyle(BRAND.accent)}border-radius:4px;padding:0;">
+      <a href="${url}" target="_blank" style="display:block;min-width:${minWidth}px;padding:11px 18px;font-family:${fontFamily};font-size:13px;line-height:16px;mso-line-height-rule:exactly;font-weight:bold;color:${BRAND.text} !important;-webkit-text-fill-color:${BRAND.text} !important;text-decoration:none !important;text-decoration-line:none !important;-webkit-text-decoration-line:none !important;border:0 !important;outline:none !important;border-bottom:none !important;">
+        <span style="display:inline-block;font-family:${fontFamily};font-size:13px;line-height:16px;mso-line-height-rule:exactly;font-weight:bold;color:${BRAND.text} !important;-webkit-text-fill-color:${BRAND.text} !important;text-decoration:none !important;text-decoration-line:none !important;-webkit-text-decoration-line:none !important;border-bottom:none !important;">${label}</span>
       </a>
     </td>
   </tr>
@@ -143,12 +137,12 @@ function heading(
   const cleanEn = (enTitle || '').trim();
   const cleanPl = `${prefix}${plTitle || ''}`;
 
-  return `<${tag} style="margin:0;padding:0 0 ${cleanEn ? 4 : bottom}px 0;font-family:${fontFamily};font-size:${plSize}px;line-height:${plLine}px;font-weight:bold;${textStyle(BRAND.text)}">
+  return `<div role="heading" aria-level="${tag === 'h2' ? 2 : 3}" style="margin:0;padding:0 0 ${cleanEn ? 4 : bottom}px 0;font-family:${fontFamily};font-size:${plSize}px;line-height:${plLine}px;mso-line-height-rule:exactly;font-weight:bold;${textStyle(BRAND.text)}">
     ${esc(cleanPl)}
-  </${tag}>${cleanEn ? `
-  <p style="margin:0;padding:0 0 ${bottom}px 0;font-family:${fontFamily};font-size:${enSize}px;line-height:${enLine}px;font-weight:bold;${textStyle(BRAND.text)}">
+  </div>${cleanEn ? `
+  <div style="margin:0;padding:0 0 ${bottom}px 0;font-family:${fontFamily};font-size:${enSize}px;line-height:${enLine}px;mso-line-height-rule:exactly;font-weight:bold;${textStyle(BRAND.text)}">
     ${esc(cleanEn)}
-  </p>` : ''}`;
+  </div>` : ''}`;
 }
 
 function imageBlock(
@@ -190,7 +184,7 @@ function articleRow(article: Article, index: number, fontFamily: string): string
           </td>
           <td width="280" valign="top" style="width:280px;padding:0 0 20px 0;${bgStyle(BRAND.white)}">
             ${heading(article.title, article.titleEn, fontFamily, 'h3', 17, 22, 14, 19, 10)}
-            <p style="margin:0;padding:0 0 14px 0;font-family:${fontFamily};font-size:14px;line-height:20px;${textStyle(BRAND.text)}">
+            <p style="margin:0;padding:0 0 14px 0;font-family:${fontFamily};font-size:14px;line-height:20px;mso-line-height-rule:exactly;${textStyle(BRAND.text)}">
               ${esc(article.description)}
             </p>
             ${dualButtons(article.link, article.linkEn, fontFamily)}
@@ -235,7 +229,7 @@ export function generateNewOutlookPasteHTML(state: NewsletterState): string {
 
   const viewOnline = state.showViewOnline ? `<table role="presentation" border="0" cellpadding="0" cellspacing="0" width="600" align="center" bgcolor="${BRAND.pageBg}" style="width:600px;max-width:600px;border-collapse:collapse;${bgStyle(BRAND.pageBg)}mso-table-lspace:0pt;mso-table-rspace:0pt;">
   <tr>
-    <td align="center" style="padding:12px 20px;font-family:${ff};font-size:12px;line-height:16px;${textStyle(BRAND.muted)}${bgStyle(BRAND.pageBg)}">
+    <td align="center" style="padding:12px 20px;font-family:${ff};font-size:12px;line-height:16px;mso-line-height-rule:exactly;${textStyle(BRAND.muted)}${bgStyle(BRAND.pageBg)}">
       <a href="#" style="${textStyle(BRAND.muted)}text-decoration:underline;">Wyświetl online</a>
     </td>
   </tr>
@@ -249,7 +243,7 @@ export function generateNewOutlookPasteHTML(state: NewsletterState): string {
           <td bgcolor="${BRAND.primary}" style="${bgStyle(BRAND.primary)}padding:0;">
             <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="560" align="center" bgcolor="${BRAND.primary}" style="width:560px;max-width:560px;border-collapse:collapse;${bgStyle(BRAND.primary)}mso-table-lspace:0pt;mso-table-rspace:0pt;">
               <tr>
-                <td width="390" valign="middle" bgcolor="${BRAND.primary}" style="width:390px;padding:22px 15px 22px 24px;font-family:${ff};font-size:22px;line-height:28px;font-weight:bold;color:#ffffff !important;-webkit-text-fill-color:#ffffff !important;${bgStyle(BRAND.primary)}">
+                <td width="390" valign="middle" bgcolor="${BRAND.primary}" style="width:390px;padding:22px 15px 22px 24px;font-family:${ff};font-size:22px;line-height:28px;mso-line-height-rule:exactly;font-weight:bold;color:#ffffff !important;-webkit-text-fill-color:#ffffff !important;${bgStyle(BRAND.primary)}">
                   ${fontColor(BRAND.white, `<b style="color:#ffffff !important;-webkit-text-fill-color:#ffffff !important;">${esc(state.issueNumber)}</b>`)}
                 </td>
                 <td width="170" align="right" valign="middle" style="width:170px;padding:22px 24px 22px 15px;${bgStyle(BRAND.primary)}">
@@ -270,7 +264,7 @@ export function generateNewOutlookPasteHTML(state: NewsletterState): string {
   <tr>
     <td style="padding:24px 40px 8px 40px;${bgStyle(BRAND.white)}">
       ${heading(state.mainTitle, state.mainTitleEn, ff, 'h2', 21, 27, 16, 22, 15)}
-      <p style="margin:0;padding:0;font-family:${ff};font-size:14px;line-height:22px;${textStyle(BRAND.text)}">
+      <p style="margin:0;padding:0;font-family:${ff};font-size:14px;line-height:22px;mso-line-height-rule:exactly;${textStyle(BRAND.text)}">
         ${esc(state.mainDescription)}
       </p>
     </td>
@@ -301,7 +295,7 @@ export function generateNewOutlookPasteHTML(state: NewsletterState): string {
   <tr>
     <td style="padding:14px 40px 30px 40px;${bgStyle(BRAND.white)}">
       ${heading(state.videoTitle, state.videoTitleEn, ff, 'h3', 18, 24, 15, 21, 10, '🎬 ')}
-      <p style="margin:0;padding:0 0 15px 0;font-family:${ff};font-size:14px;line-height:20px;${textStyle(BRAND.text)}">
+      <p style="margin:0;padding:0 0 15px 0;font-family:${ff};font-size:14px;line-height:20px;mso-line-height-rule:exactly;${textStyle(BRAND.text)}">
         ${esc(state.videoDescription)}
       </p>
       ${dualButtons(state.videoReadMore || state.videoLink, state.videoReadMoreEn, ff)}
@@ -312,18 +306,18 @@ export function generateNewOutlookPasteHTML(state: NewsletterState): string {
   const feedback = state.showFeedback ? `<table role="presentation" border="0" cellpadding="0" cellspacing="0" width="600" align="center" bgcolor="${BRAND.primary}" style="width:600px;max-width:600px;border-collapse:collapse;${bgStyle(BRAND.primary)}mso-table-lspace:0pt;mso-table-rspace:0pt;">
   <tr>
     <td bgcolor="${BRAND.primary}" style="padding:28px 40px 12px 40px;${bgStyle(BRAND.primary)}">
-      <div style="margin:0;padding:0;font-family:${ff};font-size:20px;line-height:26px;font-weight:bold;color:#ffffff !important;-webkit-text-fill-color:#ffffff !important;">${fontColor(BRAND.white, `<b>${esc(state.feedbackTitle || state.footerTitle || 'Cieszymy się, że nas czytasz!')}</b>`)}</div>
+      <div style="margin:0;padding:0;font-family:${ff};font-size:20px;line-height:26px;mso-line-height-rule:exactly;font-weight:bold;color:#ffffff !important;-webkit-text-fill-color:#ffffff !important;">${fontColor(BRAND.white, `<b>${esc(state.feedbackTitle || state.footerTitle || 'Cieszymy się, że nas czytasz!')}</b>`)}</div>
     </td>
   </tr>
   <tr>
     <td bgcolor="${BRAND.primary}" style="padding:12px 40px 24px 40px;${bgStyle(BRAND.primary)}">
       <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="520" align="center" bgcolor="${BRAND.primary}" style="width:520px;border-collapse:collapse;${bgStyle(BRAND.primary)}mso-table-lspace:0pt;mso-table-rspace:0pt;">
         <tr>
-          <td width="250" valign="top" bgcolor="${BRAND.primary}" class="porr-force-white" style="width:250px;padding:0 24px 0 0;font-family:${ff};font-size:15px;line-height:23px;font-weight:bold;${strictTextStyle(BRAND.white)}${bgStyle(BRAND.primary)}">
-            <div style="margin:0;font-family:${ff};font-size:15px;line-height:23px;font-weight:bold;color:#ffffff !important;-webkit-text-fill-color:#ffffff !important;">${fontColor(BRAND.white, esc(state.footerLeft).replace(/\n/g, '<br>'))}</div>
+          <td width="250" valign="top" bgcolor="${BRAND.primary}" class="porr-force-white" style="width:250px;padding:0 24px 0 0;font-family:${ff};font-size:15px;line-height:23px;mso-line-height-rule:exactly;font-weight:bold;${strictTextStyle(BRAND.white)}${bgStyle(BRAND.primary)}">
+            <div style="margin:0;font-family:${ff};font-size:15px;line-height:23px;mso-line-height-rule:exactly;font-weight:bold;color:#ffffff !important;-webkit-text-fill-color:#ffffff !important;">${fontColor(BRAND.white, esc(state.footerLeft).replace(/\n/g, '<br>'))}</div>
           </td>
-          <td width="250" valign="top" bgcolor="${BRAND.primary}" class="porr-force-white" style="width:250px;padding:0;font-family:${ff};font-size:15px;line-height:23px;font-weight:bold;${strictTextStyle(BRAND.white)}${bgStyle(BRAND.primary)}">
-            <div style="margin:0;font-family:${ff};font-size:15px;line-height:23px;font-weight:bold;color:#ffffff !important;-webkit-text-fill-color:#ffffff !important;">${fontColor(BRAND.white, esc(state.footerRight).replace(/\n/g, '<br>'))}</div>
+          <td width="250" valign="top" bgcolor="${BRAND.primary}" class="porr-force-white" style="width:250px;padding:0;font-family:${ff};font-size:15px;line-height:23px;mso-line-height-rule:exactly;font-weight:bold;${strictTextStyle(BRAND.white)}${bgStyle(BRAND.primary)}">
+            <div style="margin:0;font-family:${ff};font-size:15px;line-height:23px;mso-line-height-rule:exactly;font-weight:bold;color:#ffffff !important;-webkit-text-fill-color:#ffffff !important;">${fontColor(BRAND.white, esc(state.footerRight).replace(/\n/g, '<br>'))}</div>
           </td>
         </tr>
       </table>
@@ -339,18 +333,18 @@ export function generateNewOutlookPasteHTML(state: NewsletterState): string {
   const fallbackFooter = !state.showFeedback ? `<table role="presentation" border="0" cellpadding="0" cellspacing="0" width="600" align="center" bgcolor="${BRAND.primary}" style="width:600px;max-width:600px;border-collapse:collapse;${bgStyle(BRAND.primary)}mso-table-lspace:0pt;mso-table-rspace:0pt;">
   <tr>
     <td bgcolor="${BRAND.primary}" style="padding:28px 40px 12px 40px;${bgStyle(BRAND.primary)}">
-      <div style="margin:0;padding:0;font-family:${ff};font-size:20px;line-height:26px;font-weight:bold;color:#ffffff !important;-webkit-text-fill-color:#ffffff !important;">${fontColor(BRAND.white, `<b>${esc(state.footerTitle)}</b>`)}</div>
+      <div style="margin:0;padding:0;font-family:${ff};font-size:20px;line-height:26px;mso-line-height-rule:exactly;font-weight:bold;color:#ffffff !important;-webkit-text-fill-color:#ffffff !important;">${fontColor(BRAND.white, `<b>${esc(state.footerTitle)}</b>`)}</div>
     </td>
   </tr>
   <tr>
     <td bgcolor="${BRAND.primary}" style="padding:12px 40px 24px 40px;${bgStyle(BRAND.primary)}">
       <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="520" align="center" bgcolor="${BRAND.primary}" style="width:520px;border-collapse:collapse;${bgStyle(BRAND.primary)}mso-table-lspace:0pt;mso-table-rspace:0pt;">
         <tr>
-          <td width="250" valign="top" bgcolor="${BRAND.primary}" class="porr-force-white" style="width:250px;padding:0 24px 0 0;font-family:${ff};font-size:15px;line-height:23px;font-weight:bold;${strictTextStyle(BRAND.white)}${bgStyle(BRAND.primary)}">
-            <div style="margin:0;font-family:${ff};font-size:15px;line-height:23px;font-weight:bold;color:#ffffff !important;-webkit-text-fill-color:#ffffff !important;">${fontColor(BRAND.white, esc(state.footerLeft).replace(/\n/g, '<br>'))}</div>
+          <td width="250" valign="top" bgcolor="${BRAND.primary}" class="porr-force-white" style="width:250px;padding:0 24px 0 0;font-family:${ff};font-size:15px;line-height:23px;mso-line-height-rule:exactly;font-weight:bold;${strictTextStyle(BRAND.white)}${bgStyle(BRAND.primary)}">
+            <div style="margin:0;font-family:${ff};font-size:15px;line-height:23px;mso-line-height-rule:exactly;font-weight:bold;color:#ffffff !important;-webkit-text-fill-color:#ffffff !important;">${fontColor(BRAND.white, esc(state.footerLeft).replace(/\n/g, '<br>'))}</div>
           </td>
-          <td width="250" valign="top" bgcolor="${BRAND.primary}" class="porr-force-white" style="width:250px;padding:0;font-family:${ff};font-size:15px;line-height:23px;font-weight:bold;${strictTextStyle(BRAND.white)}${bgStyle(BRAND.primary)}">
-            <div style="margin:0;font-family:${ff};font-size:15px;line-height:23px;font-weight:bold;color:#ffffff !important;-webkit-text-fill-color:#ffffff !important;">${fontColor(BRAND.white, esc(state.footerRight).replace(/\n/g, '<br>'))}</div>
+          <td width="250" valign="top" bgcolor="${BRAND.primary}" class="porr-force-white" style="width:250px;padding:0;font-family:${ff};font-size:15px;line-height:23px;mso-line-height-rule:exactly;font-weight:bold;${strictTextStyle(BRAND.white)}${bgStyle(BRAND.primary)}">
+            <div style="margin:0;font-family:${ff};font-size:15px;line-height:23px;mso-line-height-rule:exactly;font-weight:bold;color:#ffffff !important;-webkit-text-fill-color:#ffffff !important;">${fontColor(BRAND.white, esc(state.footerRight).replace(/\n/g, '<br>'))}</div>
           </td>
         </tr>
       </table>
@@ -379,7 +373,7 @@ export function generateNewOutlookPasteHTML(state: NewsletterState): string {
 
   const legal = `<table role="presentation" border="0" cellpadding="0" cellspacing="0" width="600" align="center" bgcolor="${BRAND.pageBg}" style="width:600px;max-width:600px;border-collapse:collapse;${bgStyle(BRAND.pageBg)}mso-table-lspace:0pt;mso-table-rspace:0pt;">
   <tr>
-    <td align="center" style="padding:6px 20px 28px 20px;font-family:${ff};font-size:11px;line-height:16px;${textStyle(BRAND.legal)}${bgStyle(BRAND.pageBg)}">
+    <td align="center" style="padding:6px 20px 28px 20px;font-family:${ff};font-size:11px;line-height:16px;mso-line-height-rule:exactly;${textStyle(BRAND.legal)}${bgStyle(BRAND.pageBg)}">
       © ${new Date().getFullYear()} PORR S.A. Wszelkie prawa zastrzeżone.
     </td>
   </tr>
