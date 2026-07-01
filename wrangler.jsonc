@@ -7,7 +7,7 @@
     {
       "binding": "DB",
       "database_name": "porr-newsletter-generator",
-      "database_id": "012e6f50-e171-41c5-8e71-c229c3f26185"
+      "database_id": "REPLACE_WITH_D1_DATABASE_ID"
     }
   ]
 }

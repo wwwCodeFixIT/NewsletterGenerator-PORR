@@ -196,6 +196,14 @@ export function analyzeNewsletter(state: NewsletterState, html: string): Newslet
   } else if (localImageBytes > 4 * MB) {
     issues.push({ severity: 'warning', message: `Lokalne obrazy ważą około ${formatBytes(localImageBytes)}.`, fix: 'Warto skompresować zdjęcia przed eksportem do Outlooka.' });
   }
+  if (localImages.length > 0) {
+    issues.push({
+      severity: 'warning',
+      message: `${localImages.length} lokalny/e obraz(y) może/mogą być niestabilne przy kopiowaniu do nowego Outlooka.`,
+      fix: 'Przycisk „Kopiuj jako treść maila” używa wersji paste-safe, ale dla obrazów najstabilniejsze są publiczne linki HTTPS.',
+    });
+  }
+
 
   if (estimatedEmlBytes > 12 * MB) {
     issues.push({ severity: 'error', message: `Szacowana waga EML to ${formatBytes(estimatedEmlBytes)}.`, fix: 'Zmniejsz obrazy lub liczbę sekcji przed eksportem.' });

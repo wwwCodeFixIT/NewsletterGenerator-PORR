@@ -696,14 +696,14 @@ function ExportTab(props: {
     <div className="bg-[#1a1a2e] border-l-[3px] border-[#00bcf2] p-2 rounded-r-md mb-2">
       <p className="text-[#00bcf2] text-[10px] font-bold">Najstabilniejszy workflow w nowym Outlooku</p>
       <ol className="text-[9px] text-gray-500 mt-1 list-decimal ml-3 space-y-0.5">
-        <li>Kliknij <strong>Kopiuj jako treść maila</strong>.</li>
+        <li>Kliknij <strong>Kopiuj jako treść maila</strong> — generator użyje uproszczonej wersji paste-safe.</li>
         <li>Utwórz nową wiadomość w Outlooku.</li>
         <li>Wklej zawartość skrótem <strong>Ctrl+V</strong>.</li>
         <li>Edytuj tekst/odbiorców bez używania <strong>Prześlij dalej</strong>.</li>
       </ol>
     </div>
 
-    <Btn variant="outlook-new" onClick={props.onCopyForNewOutlook}>📋 Kopiuj jako treść maila</Btn>
+    <Btn variant="outlook-new" onClick={props.onCopyForNewOutlook}>📋 Kopiuj jako treść maila (paste-safe)</Btn>
     <Btn variant="outlook" onClick={props.onExportEML}>📧 Pobierz .EML do otwarcia/importu</Btn>
     <Btn variant="outlook-new" onClick={props.onCopyAsSignature}>✍️ Kopiuj jako podpis</Btn>
     <Btn variant="secondary" onClick={props.onShowOutlookHelp}>❓ Instrukcja krok po kroku</Btn>

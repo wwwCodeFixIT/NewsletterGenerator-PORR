@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import type { NewsletterState, NotificationType } from '@/types';
 import { saveRemoteProject, slugifyTitle } from '@/utils/remoteLibrary';
+import { CLOUD_PROJECT_SOFT_LIMIT_BYTES, collectLocalImagePaths, formatBytes, getProjectJsonSize, stripLocalImagesForCloud } from '@/utils/cloudProject';
 import { Modal } from './Modal';
 
 interface SaveToLibraryModalProps {
@@ -18,6 +19,12 @@ export function SaveToLibraryModal({ state, onClose, notify }: SaveToLibraryModa
   const [type, setType] = useState<'project' | 'template'>('project');
   const [adminToken, setAdminToken] = useState(() => localStorage.getItem(ADMIN_TOKEN_KEY) || '');
   const [isSaving, setIsSaving] = useState(false);
+  const localImagePaths = useMemo(() => collectLocalImagePaths(state), [state]);
+  const originalSize = useMemo(() => getProjectJsonSize(state), [state]);
+  const cloudSafeState = useMemo(() => stripLocalImagesForCloud(state), [state]);
+  const cloudSafeSize = useMemo(() => getProjectJsonSize(cloudSafeState), [cloudSafeState]);
+  const hasLocalImages = localImagePaths.length > 0;
+  const [stripLocalImages, setStripLocalImages] = useState(true);
 
   const suggestedSlug = useMemo(() => slugifyTitle(title), [title]);
 
@@ -34,6 +41,14 @@ export function SaveToLibraryModal({ state, onClose, notify }: SaveToLibraryModa
       return;
     }
 
+    const dataToSave = stripLocalImages ? cloudSafeState : state;
+    const payloadSize = getProjectJsonSize(dataToSave);
+
+    if (payloadSize > CLOUD_PROJECT_SOFT_LIMIT_BYTES) {
+      notify(`Projekt jest za duży do Cloudflare D1 (${formatBytes(payloadSize)}). Usuń lokalne obrazy albo użyj linków HTTPS do grafik.`, 'error');
+      return;
+    }
+
     setIsSaving(true);
 
     try {
@@ -45,11 +60,11 @@ export function SaveToLibraryModal({ state, onClose, notify }: SaveToLibraryModa
         title: title.trim(),
         slug: slug.trim() || suggestedSlug,
         type,
-        data: state,
+        data: dataToSave,
         adminToken,
       });
 
-      notify('Projekt zapisany we wspólnej bibliotece.', 'success');
+      notify(stripLocalImages && hasLocalImages ? 'Projekt zapisany w bibliotece bez lokalnych obrazów. Użyj linków HTTPS, aby obrazy były wspólne dla zespołu.' : 'Projekt zapisany we wspólnej bibliotece.', 'success');
       onClose();
     } catch (error) {
       notify(error instanceof Error ? error.message : 'Nie udało się zapisać projektu w bibliotece.', 'error');
@@ -63,6 +78,30 @@ export function SaveToLibraryModal({ state, onClose, notify }: SaveToLibraryModa
       <div className="space-y-4 text-sm">
         <div className="rounded-lg border border-[#00bcf2]/20 bg-[#00bcf2]/5 p-3 text-[12px] text-gray-300">
           Ten zapis trafia do wspólnej biblioteki projektu, więc będzie widoczny dla wszystkich osób otwierających ten sam link.
+        </div>
+
+        <div className="rounded-lg border border-[#feed01]/20 bg-[#feed01]/5 p-3 text-[11px] text-gray-300">
+          <p className="font-bold text-[#feed01]">Rozmiar zapisu cloud</p>
+          <p className="mt-1">Pełny projekt: <strong>{formatBytes(originalSize)}</strong></p>
+          <p>Po usunięciu lokalnych obrazów: <strong>{formatBytes(cloudSafeSize)}</strong></p>
+          <p className="mt-1 text-gray-400">Cloudflare D1 ma limit rozmiaru pojedynczego wiersza. Lokalnie wgrane obrazy jako base64 bardzo szybko przekraczają limit.</p>
+          {hasLocalImages && (
+            <label className="mt-3 flex items-start gap-2 rounded-md bg-black/20 p-2 text-[11px] text-gray-300">
+              <input
+                type="checkbox"
+                checked={stripLocalImages}
+                onChange={(event) => setStripLocalImages(event.target.checked)}
+                className="mt-0.5"
+              />
+              <span>
+                <strong className="block text-white">Usuń lokalne obrazy z zapisu do biblioteki</strong>
+                <span className="text-gray-500">Zalecane. Do wspólnej biblioteki najlepiej używać obrazów jako linki HTTPS, np. z PORRtal / SharePoint / CDN.</span>
+              </span>
+            </label>
+          )}
+          {hasLocalImages && (
+            <p className="mt-2 text-[10px] text-amber-300">Wykryto lokalne obrazy: {localImagePaths.length}. Po ich usunięciu z zapisu trzeba będzie podać publiczne linki HTTPS albo ponownie dodać obrazy lokalnie.</p>
+          )}
         </div>
 
         <div>
