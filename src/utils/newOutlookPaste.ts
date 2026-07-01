@@ -91,8 +91,8 @@ function pasteButton(
   return `<table role="presentation" border="0" cellpadding="0" cellspacing="0" align="${align}" style="border-collapse:collapse;mso-table-lspace:0pt;mso-table-rspace:0pt;">
   <tr>
     <td align="center" valign="middle" bgcolor="${BRAND.accent}" style="${bgStyle(BRAND.accent)}border-radius:4px;padding:0;">
-      <a href="${esc(safeHref(href))}" target="_blank" style="display:inline-block;min-width:${minWidth}px;padding:11px 18px;font-family:${fontFamily};font-size:13px;line-height:16px;font-weight:bold;${strictTextStyle(BRAND.text)}text-align:center;text-decoration:none;border:0;outline:none;">
-        ${esc(text)}
+      <a href="${esc(safeHref(href))}" target="_blank" style="display:inline-block;min-width:${minWidth}px;padding:11px 18px;font-family:${fontFamily};font-size:13px;line-height:16px;font-weight:bold;${strictTextStyle(BRAND.text)}text-align:center;text-decoration:none !important;border:0;outline:none;border-bottom:none;">
+        <span style="${strictTextStyle(BRAND.text)}text-decoration:none !important;border-bottom:none;">${esc(text)}</span>
       </a>
     </td>
   </tr>
@@ -241,8 +241,8 @@ export function generateNewOutlookPasteHTML(state: NewsletterState): string {
           <td bgcolor="${BRAND.primary}" style="${bgStyle(BRAND.primary)}padding:0;">
             <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="560" align="center" bgcolor="${BRAND.primary}" style="width:560px;max-width:560px;border-collapse:collapse;${bgStyle(BRAND.primary)}mso-table-lspace:0pt;mso-table-rspace:0pt;">
               <tr>
-                <td width="390" valign="middle" style="width:390px;padding:22px 15px 22px 24px;font-family:${ff};font-size:22px;line-height:28px;font-weight:bold;${textStyle(BRAND.accent)}${bgStyle(BRAND.primary)}">
-                  ${esc(state.issueNumber)}
+                <td width="390" valign="middle" style="width:390px;padding:22px 15px 22px 24px;font-family:${ff};font-size:22px;line-height:28px;font-weight:bold;${strictTextStyle(BRAND.white)}${bgStyle(BRAND.primary)}">
+                  ${fontColor(BRAND.white, esc(state.issueNumber))}
                 </td>
                 <td width="170" align="right" valign="middle" style="width:170px;padding:22px 24px 22px 15px;${bgStyle(BRAND.primary)}">
                   ${imageBlock(state.logoUrl, 'PORR', 80, 40)}
