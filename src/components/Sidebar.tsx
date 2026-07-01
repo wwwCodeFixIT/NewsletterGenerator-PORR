@@ -609,9 +609,56 @@ function FeedbackTab({ store }: { store: Store }) {
 }
 
 function StyleTab({ store }: { store: Store }) {
-  const { state, updateField } = store;
+  const { state, updateField, update } = store;
+
+  const applyPorrLightPreset = () => {
+    update({
+      primaryColor: '#143e70',
+      accentColor: '#feed01',
+      buttonTextColor: '#143e70',
+      textColor: '#143e70',
+      bgColor: '#f3f5f8',
+      feedbackBgColor: '#eef3fa',
+      fontFamily: "'trebuchet ms', tahoma, sans-serif",
+    });
+  };
+
+  const applyPorrKdpPreset = () => {
+    update({
+      primaryColor: '#315d9a',
+      accentColor: '#feed01',
+      buttonTextColor: '#143e70',
+      textColor: '#143e70',
+      bgColor: '#f3f5f8',
+      feedbackBgColor: '#315d9a',
+      fontFamily: "'trebuchet ms', tahoma, sans-serif",
+    });
+  };
+
   return (
     <>
+      <Section title="⚡ PRESETY STYLU">
+        <div className="grid grid-cols-2 gap-1.5">
+          <button
+            type="button"
+            onClick={applyPorrLightPreset}
+            className="rounded-lg border border-[#feed01]/30 bg-[#feed01]/10 px-2 py-2 text-[10px] font-bold text-[#feed01] hover:bg-[#feed01]/20 transition-colors"
+          >
+            PORR Light
+          </button>
+          <button
+            type="button"
+            onClick={applyPorrKdpPreset}
+            className="rounded-lg border border-[#00bcf2]/30 bg-[#00bcf2]/10 px-2 py-2 text-[10px] font-bold text-[#8ee8ff] hover:bg-[#00bcf2]/20 transition-colors"
+          >
+            KDP Blue
+          </button>
+        </div>
+        <p className="mt-2 text-[9px] text-gray-500 leading-relaxed">
+          Użyj, gdy po wklejeniu do nowego Outlooka kolory wyglądają zbyt ciemno albo szablon traci czytelność.
+        </p>
+      </Section>
+
       <Section title="🎨 KOLORY">
         <div className="grid grid-cols-2 gap-x-2">
           <ColorInput label="Główny" value={state.primaryColor} onChange={v => updateField('primaryColor', v)} />

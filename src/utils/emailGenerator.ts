@@ -48,20 +48,17 @@ function vmlButton(
   textColor: string,
   fontFamily: string,
   width: number = 150,
-  height: number = 40
+  _height: number = 40
 ): string {
   const url = safeHref(href);
-  const safeWidth = Math.max(90, width);
-  const safeHeight = Math.max(34, height);
+  const safeWidth = Math.max(110, width);
 
-  // Uwaga: celowo NIE używamy tutaj VML <v:roundrect>.
-  // VML działa dobrze w pierwszym otwarciu w Outlooku, ale Outlook potrafi go
-  // rozjechać przy funkcji „Prześlij dalej”. Zwykły table-button jest mniej
-  // efektowny, ale stabilniejszy przy forwardowaniu i edycji draftu.
+  // Stabilny table-button bez wymuszonej wysokości/line-height równej wysokości.
+  // Outlook potrafił robić z przycisków zbyt wysokie bloki przy wklejaniu/forwardowaniu.
   return `<table role="presentation" border="0" cellpadding="0" cellspacing="0" width="${safeWidth}" style="width:${safeWidth}px;max-width:${safeWidth}px;border-collapse:collapse;mso-table-lspace:0pt;mso-table-rspace:0pt;display:inline-table;">
   <tr>
-    <td align="center" valign="middle" width="${safeWidth}" height="${safeHeight}" bgcolor="${bgColor}" style="width:${safeWidth}px;height:${safeHeight}px;background-color:${bgColor};border-radius:5px;mso-line-height-rule:exactly;">
-      <a href="${esc(url)}" target="_blank" style="display:block;width:${safeWidth}px;font-family:${fontFamily};font-size:13px;font-weight:bold;line-height:${safeHeight}px;color:${textColor};text-decoration:none;text-align:center;mso-line-height-rule:exactly;">
+    <td align="center" valign="middle" bgcolor="${bgColor}" style="background-color:${bgColor};border-radius:4px;padding:0;mso-line-height-rule:exactly;">
+      <a href="${esc(url)}" target="_blank" style="display:block;padding:10px 14px;font-family:${fontFamily};font-size:13px;font-weight:bold;line-height:16px;color:${textColor};text-decoration:none;text-align:center;mso-line-height-rule:exactly;">
         ${esc(text)}
       </a>
     </td>
