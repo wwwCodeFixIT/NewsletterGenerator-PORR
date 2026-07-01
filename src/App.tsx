@@ -100,11 +100,11 @@ export function App() {
     copyHtmlToClipboard(pasteHtml)
       .then(() => {
         if (warnings.length > 0) {
-          notify(`📋 Skopiowano wersję paste-safe. Uwaga: ${warnings[0]}`, 'warning');
+          notify(`📋 Skopiowano treść maila. Uwaga: ${warnings[0]}`, 'warning');
           return;
         }
 
-        notify('📋 Skopiowano wersję paste-safe. W nowym Outlooku utwórz nową wiadomość i wklej Ctrl+V.', 'info');
+        notify('📋 Skopiowano treść maila. W nowym Outlooku utwórz nową wiadomość i wklej Ctrl+V.', 'info');
       })
       .catch(() => notify('❌ Nie udało się skopiować treści HTML dla Outlooka.', 'error'));
   }, [store.state, notify]);

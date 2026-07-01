@@ -200,7 +200,7 @@ export function analyzeNewsletter(state: NewsletterState, html: string): Newslet
     issues.push({
       severity: 'warning',
       message: `${localImages.length} lokalny/e obraz(y) może/mogą być niestabilne przy kopiowaniu do nowego Outlooka.`,
-      fix: 'Przycisk „Kopiuj jako treść maila” używa wersji paste-safe, ale dla obrazów najstabilniejsze są publiczne linki HTTPS.',
+      fix: 'Przycisk „Kopiuj jako treść maila” używa HTML-a przygotowanego do Nowego Outlooka, ale dla obrazów najstabilniejsze są publiczne linki HTTPS.',
     });
   }
 

@@ -58,8 +58,8 @@ function vmlButton(
   return `<table role="presentation" border="0" cellpadding="0" cellspacing="0" width="${safeWidth}" style="width:${safeWidth}px;max-width:${safeWidth}px;border-collapse:collapse;mso-table-lspace:0pt;mso-table-rspace:0pt;display:inline-table;">
   <tr>
     <td align="center" valign="middle" bgcolor="${bgColor}" style="background-color:${bgColor};border-radius:4px;padding:0;mso-line-height-rule:exactly;">
-      <a href="${esc(url)}" target="_blank" style="display:block;padding:10px 14px;font-family:${fontFamily};font-size:13px;font-weight:bold;line-height:16px;color:${textColor};text-decoration:none;text-align:center;mso-line-height-rule:exactly;">
-        ${esc(text)}
+      <a href="${esc(url)}" target="_blank" style="display:block;padding:10px 14px;font-family:${fontFamily};font-size:13px;font-weight:bold;line-height:16px;color:${textColor} !important;-webkit-text-fill-color:${textColor} !important;text-decoration:none !important;text-decoration-line:none !important;border-bottom:none;text-align:center;mso-line-height-rule:exactly;">
+        <span style="color:${textColor} !important;-webkit-text-fill-color:${textColor} !important;text-decoration:none !important;text-decoration-line:none !important;border-bottom:none;">${esc(text)}</span>
       </a>
     </td>
   </tr>
@@ -252,8 +252,8 @@ export function generateEmailHTML(s: NewsletterState): string {
           <td bgcolor="${pc}" style="background-color:${pc};padding:0;">
             <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="560" align="center" style="width:560px;max-width:560px;border-collapse:collapse;" class="responsive">
               <tr>
-                <td width="380" style="padding:22px 15px 22px 25px;vertical-align:middle;font-family:${ff};font-size:22px;color:${ac};font-weight:bold;line-height:28px;mso-line-height-rule:exactly;">
-                  ${esc(s.issueNumber)}
+                <td width="380" style="padding:22px 15px 22px 25px;vertical-align:middle;font-family:${ff};font-size:22px;color:#ffffff !important;-webkit-text-fill-color:#ffffff !important;font-weight:bold;line-height:28px;mso-line-height-rule:exactly;">
+                  <font color="#ffffff"><span style="color:#ffffff !important;-webkit-text-fill-color:#ffffff !important;">${esc(s.issueNumber)}</span></font>
                 </td>
                 <td width="180" align="right" style="padding:22px 25px 22px 15px;vertical-align:middle;font-size:0;line-height:0;">
                   <img src="${esc(s.logoUrl)}" width="80" border="0" alt="PORR" style="display:block;width:80px;max-width:80px;border:0;outline:none;text-decoration:none;-ms-interpolation-mode:bicubic;">
@@ -411,8 +411,8 @@ export function generateEmailHTML(s: NewsletterState): string {
 <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="600" align="center" style="width:600px;max-width:600px;border-collapse:collapse;mso-table-lspace:0pt;mso-table-rspace:0pt;" class="responsive" bgcolor="${pc}">
   <tr>
     <td style="padding:25px 25px 5px 25px;" bgcolor="${pc}">
-      <h3 style="margin:0;padding:0;font-family:${ff};font-size:18px;font-weight:bold;color:#ffffff;line-height:24px;mso-line-height-rule:exactly;">
-        ${esc(s.footerTitle)}
+      <h3 style="margin:0;padding:0;font-family:${ff};font-size:18px;font-weight:bold;color:#ffffff !important;-webkit-text-fill-color:#ffffff !important;line-height:24px;mso-line-height-rule:exactly;">
+        <font color="#ffffff"><span style="color:#ffffff !important;-webkit-text-fill-color:#ffffff !important;">${esc(s.footerTitle)}</span></font>
       </h3>
     </td>
   </tr>
@@ -421,13 +421,13 @@ export function generateEmailHTML(s: NewsletterState): string {
       <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="550" style="width:550px;max-width:550px;border-collapse:collapse;mso-table-lspace:0pt;mso-table-rspace:0pt;table-layout:fixed;" class="responsive">
         <tr>
           <td width="255" valign="top" style="width:255px;padding:0 20px 0 0;vertical-align:top;">
-            <p style="margin:0;padding:0;font-family:${ff};font-size:14px;color:#ffffff;line-height:22px;mso-line-height-rule:exactly;">
-              ${esc(s.footerLeft)}
+            <p style="margin:0;padding:0;font-family:${ff};font-size:14px;color:#ffffff !important;-webkit-text-fill-color:#ffffff !important;line-height:22px;mso-line-height-rule:exactly;">
+              <font color="#ffffff"><span style="color:#ffffff !important;-webkit-text-fill-color:#ffffff !important;">${esc(s.footerLeft)}</span></font>
             </p>
           </td>
           <td width="255" valign="top" style="width:255px;padding:0;vertical-align:top;">
-            <p style="margin:0;padding:0;font-family:${ff};font-size:14px;color:#ffffff;line-height:22px;mso-line-height-rule:exactly;">
-              ${esc(s.footerRight)}
+            <p style="margin:0;padding:0;font-family:${ff};font-size:14px;color:#ffffff !important;-webkit-text-fill-color:#ffffff !important;line-height:22px;mso-line-height-rule:exactly;">
+              <font color="#ffffff"><span style="color:#ffffff !important;-webkit-text-fill-color:#ffffff !important;">${esc(s.footerRight)}</span></font>
             </p>
           </td>
         </tr>

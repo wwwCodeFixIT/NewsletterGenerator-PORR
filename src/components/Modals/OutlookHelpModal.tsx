@@ -18,7 +18,7 @@ export function OutlookHelpModal({ onClose }: OutlookHelpModalProps) {
           <h4 className="mb-2 font-bold text-[#feed01]">Najstabilniejszy flow: kopiowanie do nowej wiadomości</h4>
 
           <ol className="ml-5 list-decimal space-y-2 text-gray-300">
-            <li>W generatorze kliknij <strong className="text-white">📋 Kopiuj jako treść maila (paste-safe)</strong>.</li>
+            <li>W generatorze kliknij <strong className="text-white">📋 Kopiuj jako treść maila</strong>.</li>
             <li>W nowym Outlooku kliknij <strong className="text-white">Nowa wiadomość</strong>.</li>
             <li>Kliknij w treść wiadomości i wklej <strong className="text-white">Ctrl+V</strong>.</li>
             <li>Uzupełnij odbiorców, sprawdź obrazy i linki.</li>
@@ -29,7 +29,7 @@ export function OutlookHelpModal({ onClose }: OutlookHelpModalProps) {
           <div className="mt-3 rounded-r-lg border-l-[3px] border-[#00bcf2] bg-[#1a1a2e] p-3">
             <p className="mb-1 text-[11px] font-bold text-[#00bcf2]">💡 Dlaczego tak?</p>
             <p className="text-[11px] text-gray-400">
-              Nowy Outlook obsługuje otwieranie plików .EML, ale edytowanie i dalsze forwardowanie gotowego .EML potrafi przepisać HTML, zgubić grafiki albo zmienić układ. Kopiowanie jako treść HTML do nowej wiadomości jest najbezpieczniejsze dla codziennej pracy. Generator używa tu uproszczonego HTML-a paste-safe: bez &lt;head&gt;, bez VML, bez CID i z maksymalnie inline’owanymi stylami.
+              Nowy Outlook obsługuje otwieranie plików .EML, ale edytowanie i dalsze forwardowanie gotowego .EML potrafi przepisać HTML, zgubić grafiki albo zmienić układ. Kopiowanie jako treść HTML do nowej wiadomości jest najbezpieczniejsze dla codziennej pracy. Generator kopiuje HTML przygotowany do wklejenia w oknie nowej wiadomości: bez &lt;head&gt;, bez VML, bez CID i z maksymalnie inline’owanymi stylami.
             </p>
           </div>
         </section>

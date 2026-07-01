@@ -92,7 +92,7 @@ function pasteButton(
   <tr>
     <td align="center" valign="middle" bgcolor="${BRAND.accent}" style="${bgStyle(BRAND.accent)}border-radius:4px;padding:0;">
       <a href="${esc(safeHref(href))}" target="_blank" style="display:inline-block;min-width:${minWidth}px;padding:11px 18px;font-family:${fontFamily};font-size:13px;line-height:16px;font-weight:bold;${strictTextStyle(BRAND.text)}text-align:center;text-decoration:none !important;border:0;outline:none;border-bottom:none;">
-        <span style="${strictTextStyle(BRAND.text)}text-decoration:none !important;border-bottom:none;">${esc(text)}</span>
+        <span style="${strictTextStyle(BRAND.text)}text-decoration:none !important;text-decoration-line:none !important;border-bottom:none;">${esc(text)}</span>
       </a>
     </td>
   </tr>
