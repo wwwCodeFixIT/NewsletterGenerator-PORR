@@ -71,6 +71,16 @@ function textStyle(color: string): string {
   return `color:${color};-webkit-text-fill-color:${color};mso-style-textfill-fill-color:${color};`;
 }
 
+function strictTextStyle(color: string): string {
+  // Nowy Outlook potrafi przemalować tekst przy wklejaniu, szczególnie na ciemnym tle.
+  // !important + -webkit-text-fill-color + fallback <font color> zwiększają stabilność kontrastu.
+  return `color:${color} !important;-webkit-text-fill-color:${color} !important;mso-style-textfill-fill-color:${color};`;
+}
+
+function fontColor(color: string, value: string): string {
+  return `<font color="${color}"><span style="${strictTextStyle(color)}">${value}</span></font>`;
+}
+
 function pasteButton(
   href: string | undefined,
   text: string,
@@ -81,7 +91,7 @@ function pasteButton(
   return `<table role="presentation" border="0" cellpadding="0" cellspacing="0" align="${align}" style="border-collapse:collapse;mso-table-lspace:0pt;mso-table-rspace:0pt;">
   <tr>
     <td align="center" valign="middle" bgcolor="${BRAND.accent}" style="${bgStyle(BRAND.accent)}border-radius:4px;padding:0;">
-      <a href="${esc(safeHref(href))}" target="_blank" style="display:inline-block;min-width:${minWidth}px;padding:11px 18px;font-family:${fontFamily};font-size:13px;line-height:16px;font-weight:bold;${textStyle(BRAND.text)}text-align:center;text-decoration:none;border:0;outline:none;">
+      <a href="${esc(safeHref(href))}" target="_blank" style="display:inline-block;min-width:${minWidth}px;padding:11px 18px;font-family:${fontFamily};font-size:13px;line-height:16px;font-weight:bold;${strictTextStyle(BRAND.text)}text-align:center;text-decoration:none;border:0;outline:none;">
         ${esc(text)}
       </a>
     </td>
@@ -293,54 +303,58 @@ export function generateNewOutlookPasteHTML(state: NewsletterState): string {
 
   const feedback = state.showFeedback ? `<table role="presentation" border="0" cellpadding="0" cellspacing="0" width="600" align="center" bgcolor="${BRAND.primary}" style="width:600px;max-width:600px;border-collapse:collapse;${bgStyle(BRAND.primary)}mso-table-lspace:0pt;mso-table-rspace:0pt;">
   <tr>
-    <td style="padding:26px 40px 10px 40px;${bgStyle(BRAND.primary)}">
-      <h3 style="margin:0;padding:0;font-family:${ff};font-size:18px;line-height:24px;font-weight:bold;${textStyle(BRAND.white)}">${esc(state.feedbackTitle || state.footerTitle || 'Cieszymy się, że nas czytasz!')}</h3>
+    <td bgcolor="${BRAND.primary}" style="padding:28px 40px 12px 40px;${bgStyle(BRAND.primary)}">
+      <h3 style="margin:0;padding:0;font-family:${ff};font-size:20px;line-height:26px;font-weight:bold;${strictTextStyle(BRAND.white)}">
+        ${fontColor(BRAND.white, esc(state.feedbackTitle || state.footerTitle || 'Cieszymy się, że nas czytasz!'))}
+      </h3>
     </td>
   </tr>
   <tr>
-    <td style="padding:10px 40px 20px 40px;${bgStyle(BRAND.primary)}">
-      <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="520" align="center" style="width:520px;border-collapse:collapse;mso-table-lspace:0pt;mso-table-rspace:0pt;">
+    <td bgcolor="${BRAND.primary}" style="padding:12px 40px 24px 40px;${bgStyle(BRAND.primary)}">
+      <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="520" align="center" bgcolor="${BRAND.primary}" style="width:520px;border-collapse:collapse;${bgStyle(BRAND.primary)}mso-table-lspace:0pt;mso-table-rspace:0pt;">
         <tr>
-          <td width="250" valign="top" style="width:250px;padding:0 20px 0 0;font-family:${ff};font-size:14px;line-height:22px;${textStyle(BRAND.white)}${bgStyle(BRAND.primary)}">
-            ${esc(state.footerLeft).replace(/\n/g, '<br>')}
+          <td width="250" valign="top" bgcolor="${BRAND.primary}" style="width:250px;padding:0 24px 0 0;font-family:${ff};font-size:15px;line-height:23px;font-weight:bold;${strictTextStyle(BRAND.white)}${bgStyle(BRAND.primary)}">
+            ${fontColor(BRAND.white, esc(state.footerLeft).replace(/\n/g, '<br>'))}
           </td>
-          <td width="250" valign="top" style="width:250px;padding:0;font-family:${ff};font-size:14px;line-height:22px;${textStyle(BRAND.white)}${bgStyle(BRAND.primary)}">
-            ${esc(state.footerRight).replace(/\n/g, '<br>')}
+          <td width="250" valign="top" bgcolor="${BRAND.primary}" style="width:250px;padding:0;font-family:${ff};font-size:15px;line-height:23px;font-weight:bold;${strictTextStyle(BRAND.white)}${bgStyle(BRAND.primary)}">
+            ${fontColor(BRAND.white, esc(state.footerRight).replace(/\n/g, '<br>'))}
           </td>
         </tr>
       </table>
     </td>
   </tr>
   <tr>
-    <td align="center" style="padding:0 40px 32px 40px;${bgStyle(BRAND.primary)}">
-      ${pasteButton(normalizeFooterButtonHref(state.footerButtonUrl, state.contactEmail), footerButtonText(state.footerButtonText), ff, 170, 'center')}
+    <td align="center" bgcolor="${BRAND.primary}" style="padding:0 40px 34px 40px;${bgStyle(BRAND.primary)}">
+      ${pasteButton(normalizeFooterButtonHref(state.footerButtonUrl, state.contactEmail), footerButtonText(state.footerButtonText), ff, 190, 'center')}
     </td>
   </tr>
 </table>` : '';
 
   const fallbackFooter = !state.showFeedback ? `<table role="presentation" border="0" cellpadding="0" cellspacing="0" width="600" align="center" bgcolor="${BRAND.primary}" style="width:600px;max-width:600px;border-collapse:collapse;${bgStyle(BRAND.primary)}mso-table-lspace:0pt;mso-table-rspace:0pt;">
   <tr>
-    <td style="padding:26px 40px 10px 40px;${bgStyle(BRAND.primary)}">
-      <h3 style="margin:0;padding:0;font-family:${ff};font-size:18px;line-height:24px;font-weight:bold;${textStyle(BRAND.white)}">${esc(state.footerTitle)}</h3>
+    <td bgcolor="${BRAND.primary}" style="padding:28px 40px 12px 40px;${bgStyle(BRAND.primary)}">
+      <h3 style="margin:0;padding:0;font-family:${ff};font-size:20px;line-height:26px;font-weight:bold;${strictTextStyle(BRAND.white)}">
+        ${fontColor(BRAND.white, esc(state.footerTitle))}
+      </h3>
     </td>
   </tr>
   <tr>
-    <td style="padding:10px 40px 20px 40px;${bgStyle(BRAND.primary)}">
-      <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="520" align="center" style="width:520px;border-collapse:collapse;mso-table-lspace:0pt;mso-table-rspace:0pt;">
+    <td bgcolor="${BRAND.primary}" style="padding:12px 40px 24px 40px;${bgStyle(BRAND.primary)}">
+      <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="520" align="center" bgcolor="${BRAND.primary}" style="width:520px;border-collapse:collapse;${bgStyle(BRAND.primary)}mso-table-lspace:0pt;mso-table-rspace:0pt;">
         <tr>
-          <td width="250" valign="top" style="width:250px;padding:0 20px 0 0;font-family:${ff};font-size:14px;line-height:22px;${textStyle(BRAND.white)}${bgStyle(BRAND.primary)}">
-            ${esc(state.footerLeft).replace(/\n/g, '<br>')}
+          <td width="250" valign="top" bgcolor="${BRAND.primary}" style="width:250px;padding:0 24px 0 0;font-family:${ff};font-size:15px;line-height:23px;font-weight:bold;${strictTextStyle(BRAND.white)}${bgStyle(BRAND.primary)}">
+            ${fontColor(BRAND.white, esc(state.footerLeft).replace(/\n/g, '<br>'))}
           </td>
-          <td width="250" valign="top" style="width:250px;padding:0;font-family:${ff};font-size:14px;line-height:22px;${textStyle(BRAND.white)}${bgStyle(BRAND.primary)}">
-            ${esc(state.footerRight).replace(/\n/g, '<br>')}
+          <td width="250" valign="top" bgcolor="${BRAND.primary}" style="width:250px;padding:0;font-family:${ff};font-size:15px;line-height:23px;font-weight:bold;${strictTextStyle(BRAND.white)}${bgStyle(BRAND.primary)}">
+            ${fontColor(BRAND.white, esc(state.footerRight).replace(/\n/g, '<br>'))}
           </td>
         </tr>
       </table>
     </td>
   </tr>
   <tr>
-    <td align="center" style="padding:0 40px 32px 40px;${bgStyle(BRAND.primary)}">
-      ${pasteButton(normalizeFooterButtonHref(state.footerButtonUrl, state.contactEmail), footerButtonText(state.footerButtonText), ff, 170, 'center')}
+    <td align="center" bgcolor="${BRAND.primary}" style="padding:0 40px 34px 40px;${bgStyle(BRAND.primary)}">
+      ${pasteButton(normalizeFooterButtonHref(state.footerButtonUrl, state.contactEmail), footerButtonText(state.footerButtonText), ff, 190, 'center')}
     </td>
   </tr>
 </table>` : '';
