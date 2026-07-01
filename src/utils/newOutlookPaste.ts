@@ -78,7 +78,7 @@ function strictTextStyle(color: string): string {
 }
 
 function fontColor(color: string, value: string): string {
-  return `<font color="${color}"><span style="${strictTextStyle(color)}">${value}</span></font>`;
+  return `<font color="${color}"><span style="${strictTextStyle(color)}text-decoration:none !important;">${value}</span></font>`;
 }
 
 function pasteButton(
@@ -88,17 +88,17 @@ function pasteButton(
   minWidth = 132,
   align: 'left' | 'center' = 'left'
 ): string {
-  return `<table role="presentation" border="0" cellpadding="0" cellspacing="0" align="${align}" style="border-collapse:collapse;mso-table-lspace:0pt;mso-table-rspace:0pt;">
+  return `<a href="${esc(safeHref(href))}" target="_blank" style="display:inline-block;text-decoration:none !important;border:0 !important;outline:none !important;">
+<table role="presentation" border="0" cellpadding="0" cellspacing="0" align="${align}" style="border-collapse:collapse;mso-table-lspace:0pt;mso-table-rspace:0pt;text-decoration:none !important;">
   <tr>
-    <td align="center" valign="middle" bgcolor="${BRAND.accent}" style="${bgStyle(BRAND.accent)}border-radius:4px;padding:0;">
-      <a href="${esc(safeHref(href))}" target="_blank" style="display:inline-block;min-width:${minWidth}px;padding:11px 18px;font-family:${fontFamily};font-size:13px;line-height:16px;font-weight:bold;${strictTextStyle(BRAND.text)}text-align:center;text-decoration:none !important;border:0;outline:none;border-bottom:none;">
-        <span style="${strictTextStyle(BRAND.text)}text-decoration:none !important;text-decoration-line:none !important;border-bottom:none;">${esc(text)}</span>
-      </a>
+    <td align="center" valign="middle" bgcolor="${BRAND.accent}" style="${bgStyle(BRAND.accent)}border-radius:4px;padding:11px 18px;min-width:${minWidth}px;text-decoration:none !important;">
+      <span style="display:inline-block;font-family:${fontFamily};font-size:13px;line-height:16px;font-weight:bold;${strictTextStyle(BRAND.text)}text-align:center;text-decoration:none !important;border-bottom:none !important;">
+        <font color="${BRAND.text}">${esc(text)}</font>
+      </span>
     </td>
   </tr>
-</table>`;
+</table></a>`;
 }
-
 function dualButtons(
   plHref: string | undefined,
   enHref: string | undefined,
@@ -241,8 +241,8 @@ export function generateNewOutlookPasteHTML(state: NewsletterState): string {
           <td bgcolor="${BRAND.primary}" style="${bgStyle(BRAND.primary)}padding:0;">
             <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="560" align="center" bgcolor="${BRAND.primary}" style="width:560px;max-width:560px;border-collapse:collapse;${bgStyle(BRAND.primary)}mso-table-lspace:0pt;mso-table-rspace:0pt;">
               <tr>
-                <td width="390" valign="middle" style="width:390px;padding:22px 15px 22px 24px;font-family:${ff};font-size:22px;line-height:28px;font-weight:bold;${strictTextStyle(BRAND.white)}${bgStyle(BRAND.primary)}">
-                  ${fontColor(BRAND.white, esc(state.issueNumber))}
+                <td width="390" valign="middle" class="porr-force-white" style="width:390px;padding:22px 15px 22px 24px;font-family:${ff};font-size:22px;line-height:28px;font-weight:bold;${strictTextStyle(BRAND.white)}${bgStyle(BRAND.primary)}">
+                  <p style="margin:0;font-family:${ff};font-size:22px;line-height:28px;font-weight:bold;${strictTextStyle(BRAND.white)}">${fontColor(BRAND.white, esc(state.issueNumber))}</p>
                 </td>
                 <td width="170" align="right" valign="middle" style="width:170px;padding:22px 24px 22px 15px;${bgStyle(BRAND.primary)}">
                   ${imageBlock(state.logoUrl, 'PORR', 80, 40)}
@@ -304,8 +304,8 @@ export function generateNewOutlookPasteHTML(state: NewsletterState): string {
   const feedback = state.showFeedback ? `<table role="presentation" border="0" cellpadding="0" cellspacing="0" width="600" align="center" bgcolor="${BRAND.primary}" style="width:600px;max-width:600px;border-collapse:collapse;${bgStyle(BRAND.primary)}mso-table-lspace:0pt;mso-table-rspace:0pt;">
   <tr>
     <td bgcolor="${BRAND.primary}" style="padding:28px 40px 12px 40px;${bgStyle(BRAND.primary)}">
-      <h3 style="margin:0;padding:0;font-family:${ff};font-size:20px;line-height:26px;font-weight:bold;${strictTextStyle(BRAND.white)}">
-        ${fontColor(BRAND.white, esc(state.feedbackTitle || state.footerTitle || 'Cieszymy się, że nas czytasz!'))}
+      <h3 class="porr-force-white" style="margin:0;padding:0;font-family:${ff};font-size:20px;line-height:26px;font-weight:bold;${strictTextStyle(BRAND.white)}">
+        <p style="margin:0;font-family:${ff};font-size:20px;line-height:26px;font-weight:bold;${strictTextStyle(BRAND.white)}">${fontColor(BRAND.white, esc(state.feedbackTitle || state.footerTitle || 'Cieszymy się, że nas czytasz!'))}</p>
       </h3>
     </td>
   </tr>
@@ -313,11 +313,11 @@ export function generateNewOutlookPasteHTML(state: NewsletterState): string {
     <td bgcolor="${BRAND.primary}" style="padding:12px 40px 24px 40px;${bgStyle(BRAND.primary)}">
       <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="520" align="center" bgcolor="${BRAND.primary}" style="width:520px;border-collapse:collapse;${bgStyle(BRAND.primary)}mso-table-lspace:0pt;mso-table-rspace:0pt;">
         <tr>
-          <td width="250" valign="top" bgcolor="${BRAND.primary}" style="width:250px;padding:0 24px 0 0;font-family:${ff};font-size:15px;line-height:23px;font-weight:bold;${strictTextStyle(BRAND.white)}${bgStyle(BRAND.primary)}">
-            ${fontColor(BRAND.white, esc(state.footerLeft).replace(/\n/g, '<br>'))}
+          <td width="250" valign="top" bgcolor="${BRAND.primary}" class="porr-force-white" style="width:250px;padding:0 24px 0 0;font-family:${ff};font-size:15px;line-height:23px;font-weight:bold;${strictTextStyle(BRAND.white)}${bgStyle(BRAND.primary)}">
+            <p style="margin:0;font-family:${ff};font-size:15px;line-height:23px;font-weight:bold;${strictTextStyle(BRAND.white)}">${fontColor(BRAND.white, esc(state.footerLeft).replace(/\n/g, '<br>'))}</p>
           </td>
-          <td width="250" valign="top" bgcolor="${BRAND.primary}" style="width:250px;padding:0;font-family:${ff};font-size:15px;line-height:23px;font-weight:bold;${strictTextStyle(BRAND.white)}${bgStyle(BRAND.primary)}">
-            ${fontColor(BRAND.white, esc(state.footerRight).replace(/\n/g, '<br>'))}
+          <td width="250" valign="top" bgcolor="${BRAND.primary}" class="porr-force-white" style="width:250px;padding:0;font-family:${ff};font-size:15px;line-height:23px;font-weight:bold;${strictTextStyle(BRAND.white)}${bgStyle(BRAND.primary)}">
+            <p style="margin:0;font-family:${ff};font-size:15px;line-height:23px;font-weight:bold;${strictTextStyle(BRAND.white)}">${fontColor(BRAND.white, esc(state.footerRight).replace(/\n/g, '<br>'))}</p>
           </td>
         </tr>
       </table>
@@ -333,8 +333,8 @@ export function generateNewOutlookPasteHTML(state: NewsletterState): string {
   const fallbackFooter = !state.showFeedback ? `<table role="presentation" border="0" cellpadding="0" cellspacing="0" width="600" align="center" bgcolor="${BRAND.primary}" style="width:600px;max-width:600px;border-collapse:collapse;${bgStyle(BRAND.primary)}mso-table-lspace:0pt;mso-table-rspace:0pt;">
   <tr>
     <td bgcolor="${BRAND.primary}" style="padding:28px 40px 12px 40px;${bgStyle(BRAND.primary)}">
-      <h3 style="margin:0;padding:0;font-family:${ff};font-size:20px;line-height:26px;font-weight:bold;${strictTextStyle(BRAND.white)}">
-        ${fontColor(BRAND.white, esc(state.footerTitle))}
+      <h3 class="porr-force-white" style="margin:0;padding:0;font-family:${ff};font-size:20px;line-height:26px;font-weight:bold;${strictTextStyle(BRAND.white)}">
+        <p style="margin:0;font-family:${ff};font-size:20px;line-height:26px;font-weight:bold;${strictTextStyle(BRAND.white)}">${fontColor(BRAND.white, esc(state.footerTitle))}</p>
       </h3>
     </td>
   </tr>
@@ -342,11 +342,11 @@ export function generateNewOutlookPasteHTML(state: NewsletterState): string {
     <td bgcolor="${BRAND.primary}" style="padding:12px 40px 24px 40px;${bgStyle(BRAND.primary)}">
       <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="520" align="center" bgcolor="${BRAND.primary}" style="width:520px;border-collapse:collapse;${bgStyle(BRAND.primary)}mso-table-lspace:0pt;mso-table-rspace:0pt;">
         <tr>
-          <td width="250" valign="top" bgcolor="${BRAND.primary}" style="width:250px;padding:0 24px 0 0;font-family:${ff};font-size:15px;line-height:23px;font-weight:bold;${strictTextStyle(BRAND.white)}${bgStyle(BRAND.primary)}">
-            ${fontColor(BRAND.white, esc(state.footerLeft).replace(/\n/g, '<br>'))}
+          <td width="250" valign="top" bgcolor="${BRAND.primary}" class="porr-force-white" style="width:250px;padding:0 24px 0 0;font-family:${ff};font-size:15px;line-height:23px;font-weight:bold;${strictTextStyle(BRAND.white)}${bgStyle(BRAND.primary)}">
+            <p style="margin:0;font-family:${ff};font-size:15px;line-height:23px;font-weight:bold;${strictTextStyle(BRAND.white)}">${fontColor(BRAND.white, esc(state.footerLeft).replace(/\n/g, '<br>'))}</p>
           </td>
-          <td width="250" valign="top" bgcolor="${BRAND.primary}" style="width:250px;padding:0;font-family:${ff};font-size:15px;line-height:23px;font-weight:bold;${strictTextStyle(BRAND.white)}${bgStyle(BRAND.primary)}">
-            ${fontColor(BRAND.white, esc(state.footerRight).replace(/\n/g, '<br>'))}
+          <td width="250" valign="top" bgcolor="${BRAND.primary}" class="porr-force-white" style="width:250px;padding:0;font-family:${ff};font-size:15px;line-height:23px;font-weight:bold;${strictTextStyle(BRAND.white)}${bgStyle(BRAND.primary)}">
+            <p style="margin:0;font-family:${ff};font-size:15px;line-height:23px;font-weight:bold;${strictTextStyle(BRAND.white)}">${fontColor(BRAND.white, esc(state.footerRight).replace(/\n/g, '<br>'))}</p>
           </td>
         </tr>
       </table>
@@ -376,13 +376,34 @@ export function generateNewOutlookPasteHTML(state: NewsletterState): string {
   const legal = `<table role="presentation" border="0" cellpadding="0" cellspacing="0" width="600" align="center" bgcolor="${BRAND.pageBg}" style="width:600px;max-width:600px;border-collapse:collapse;${bgStyle(BRAND.pageBg)}mso-table-lspace:0pt;mso-table-rspace:0pt;">
   <tr>
     <td align="center" style="padding:6px 20px 28px 20px;font-family:${ff};font-size:11px;line-height:16px;${textStyle(BRAND.legal)}${bgStyle(BRAND.pageBg)}">
-      No longer want these emails? <a href="#" style="${textStyle(BRAND.legal)}text-decoration:underline;">Unsubscribe</a><br>
       © ${new Date().getFullYear()} PORR S.A. Wszelkie prawa zastrzeżone.
     </td>
   </tr>
 </table>`;
 
-  return `<table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" bgcolor="${BRAND.pageBg}" style="width:100%;border-collapse:collapse;${bgStyle(BRAND.pageBg)}mso-table-lspace:0pt;mso-table-rspace:0pt;">
+  const pasteStyle = `<style type="text/css">
+    .porr-mail-root a,
+    .porr-mail-root a:link,
+    .porr-mail-root a:visited,
+    .porr-mail-root a:hover,
+    .porr-mail-root a span,
+    .porr-mail-root .porr-button-link,
+    .porr-mail-root .porr-button-text {
+      text-decoration: none !important;
+      text-decoration-line: none !important;
+      -webkit-text-decoration-line: none !important;
+      border-bottom: 0 !important;
+    }
+    .porr-mail-root .porr-force-white,
+    .porr-mail-root .porr-force-white *,
+    .porr-mail-root .porr-force-white font {
+      color: #ffffff !important;
+      -webkit-text-fill-color: #ffffff !important;
+      text-decoration: none !important;
+    }
+  </style>`;
+
+  return `${pasteStyle}<div class="porr-mail-root" style="margin:0;padding:0;background-color:${BRAND.pageBg};"><table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" bgcolor="${BRAND.pageBg}" style="width:100%;border-collapse:collapse;${bgStyle(BRAND.pageBg)}mso-table-lspace:0pt;mso-table-rspace:0pt;">
   <tr>
     <td align="center" bgcolor="${BRAND.pageBg}" style="padding:0;${bgStyle(BRAND.pageBg)}">
       ${viewOnline}
@@ -395,5 +416,5 @@ export function generateNewOutlookPasteHTML(state: NewsletterState): string {
       ${legal}
     </td>
   </tr>
-</table>`;
+</table></div>`;
 }
