@@ -31,7 +31,7 @@ const defaultState: NewsletterState = {
   accentColor: '#feed01',
   buttonTextColor: '#143e70',
   textColor: '#143e70',
-  bgColor: '#fafafa',
+  bgColor: '#f3f5f8',
   fontFamily: "'trebuchet ms', tahoma, sans-serif",
   showVideo: true,
   showSocial: true,

@@ -352,7 +352,8 @@ export function generateNewOutlookPasteHTML(state: NewsletterState): string {
 
   const legal = `<table role="presentation" border="0" cellpadding="0" cellspacing="0" width="600" align="center" bgcolor="${pageBg}" style="width:600px;max-width:600px;border-collapse:collapse;background-color:${pageBg};">
   <tr>
-    <td align="center" style="padding:10px 20px 24px 20px;font-family:${ff};font-size:11px;line-height:16px;color:#6b7280;background-color:${pageBg};">
+    <td align="center" style="padding:6px 20px 28px 20px;font-family:${ff};font-size:11px;line-height:16px;color:#9aa6b2;background-color:${pageBg};">
+      No longer want these emails? <a href="#" style="color:#9aa6b2;text-decoration:underline;">Unsubscribe</a><br>
       © ${new Date().getFullYear()} PORR S.A. Wszelkie prawa zastrzeżone.
     </td>
   </tr>
