@@ -1,9 +1,13 @@
-function extractBodyHtml(html: string): string {
+function extractBodyHtml(html: string, preserveStyles = false): string {
   const match = html.match(/<body\b[^>]*>([\s\S]*?)<\/body>/i);
   const body = match?.[1]?.trim() || html.trim();
+  const withoutScripts = body.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, '');
 
-  return body
-    .replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, '')
+  if (preserveStyles) {
+    return withoutScripts.trim();
+  }
+
+  return withoutScripts
     .replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi, '')
     .trim();
 }
@@ -28,7 +32,7 @@ function htmlToPlainText(html: string): string {
 }
 
 export function getComposeHtml(html: string): string {
-  return extractBodyHtml(html);
+  return extractBodyHtml(html, true);
 }
 
 export async function copyHtmlToClipboard(html: string): Promise<void> {
