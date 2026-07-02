@@ -338,6 +338,7 @@ function ContentTab({ store }: { store: Store }) {
       <Section title="📌 NAGŁÓWEK">
         <Input label="Numer wydania" value={state.issueNumber} onChange={v => updateField('issueNumber', v)} />
         <Input label="Preheader" value={state.preheader} onChange={v => updateField('preheader', v)} placeholder="Tekst widoczny w skrzynce..." />
+        <Input label="Link do wersji online" value={state.viewOnlineUrl || ''} onChange={v => updateField('viewOnlineUrl', v)} type="url" placeholder="https://... (gdy sekcja Wyświetl online jest włączona)" />
         <Input label="Logo (URL)" value={state.logoUrl} onChange={v => updateField('logoUrl', v)} type="url" />
         <ImageUpload onUpload={v => updateField('logoUrl', v)} />
       </Section>
@@ -398,7 +399,7 @@ function ContentTab({ store }: { store: Store }) {
 }
 
 function ArticlesTab({ store }: { store: Store }) {
-  const { state, addArticle, removeArticle, updateArticle, moveArticle, updateField } = store;
+  const { state, addArticle, removeArticle, duplicateArticle, updateArticle, moveArticle, updateField } = store;
 
   return (
     <>
@@ -438,6 +439,11 @@ function ArticlesTab({ store }: { store: Store }) {
                     className="text-gray-500 hover:text-[#feed01] text-[10px] w-5 h-5 flex items-center justify-center rounded hover:bg-white/5"
                     title="W dół"
                   >▼</button>
+                  <button
+                    onClick={e => { e.stopPropagation(); duplicateArticle(a.id); }}
+                    className="text-gray-500 hover:text-[#00d9a5] text-[10px] w-5 h-5 flex items-center justify-center rounded hover:bg-white/5"
+                    title="Duplikuj"
+                  >⧉</button>
                   <button
                     onClick={e => { e.stopPropagation(); if (confirm('Usunąć ten artykuł?')) removeArticle(a.id); }}
                     className="text-gray-500 hover:text-[#e94560] text-[10px] w-5 h-5 flex items-center justify-center rounded hover:bg-red-500/10"

@@ -99,6 +99,10 @@ export function analyzeNewsletter(state: NewsletterState, html: string): Newslet
     issues.push({ severity: 'error', message: 'Brakuje numeru wydania / tematu wiadomości.', fix: 'Uzupełnij pole „Numer wydania”.' });
   }
 
+  if (state.showViewOnline && !state.viewOnlineUrl?.trim()) {
+    issues.push({ severity: 'warning', message: 'Sekcja „Wyświetl online” jest włączona, ale brakuje linku.', fix: 'Wpisz adres URL w polu „Link do wersji online” w zakładce Treść albo wyłącz tę sekcję.' });
+  }
+
   if (!state.preheader?.trim()) {
     issues.push({ severity: 'warning', message: 'Brakuje preheadera.', fix: 'Dodaj krótki tekst widoczny w podglądzie skrzynki.' });
   }

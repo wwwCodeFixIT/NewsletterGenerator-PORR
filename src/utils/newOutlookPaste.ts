@@ -1,16 +1,17 @@
 import type { Article, NewsletterState } from '@/types';
 
-const BRAND = {
-  pageBg: '#f3f5f8',
-  white: '#ffffff',
-  primary: '#143e70',
-  accent: '#feed01',
-  text: '#143e70',
-  muted: '#6b7280',
-  border: '#d7dde8',
-  legal: '#9aa6b2',
-  imageBg: '#eef2f7',
-};
+/**
+ * Generuje HTML zoptymalizowany do wklejenia w nowym Outlooku (Windows 11 / web).
+ * Używa kolorów ze stanu newslettera (nie hardkodowanych stałych), więc jest
+ * wizualnie spójny z podglądem i eksportem emailGenerator.ts.
+ *
+ * Różni się od emailGenerator.ts brakiem MSO conditionals i VML (nowy Outlook
+ * renderuje HTML bezpośrednio jak przeglądarka, nie przez Word engine).
+ */
+
+// ────────────────────────────────────────────────────────────────
+// Helpers
+// ────────────────────────────────────────────────────────────────
 
 function esc(value: string | undefined): string {
   if (!value) return '';
@@ -33,7 +34,6 @@ function normalizeFooterButtonHref(rawHref: string | undefined, contactEmail: st
     if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) return `mailto:${value}`;
     return value;
   }
-
   const email = (contactEmail || '').trim();
   return email ? `mailto:${email}` : '#';
 }
@@ -62,8 +62,6 @@ function imageSource(value: string | undefined): string {
 }
 
 function bgStyle(color: string): string {
-  // Outlook / New Outlook w trybie ciemnym potrafi przepisywać kolory.
-  // background-image z jednolitym gradientem + bgcolor + inline background-color daje najstabilniejszy efekt po wklejeniu.
   return `background-color:${color};background:${color};background-image:linear-gradient(${color},${color});color-scheme:light only;forced-color-adjust:none;`;
 }
 
@@ -72,8 +70,6 @@ function textStyle(color: string): string {
 }
 
 function strictTextStyle(color: string): string {
-  // Nowy Outlook potrafi przemalować tekst przy wklejaniu, szczególnie na ciemnym tle.
-  // !important + -webkit-text-fill-color + fallback <font color> zwiększają stabilność kontrastu.
   return `color:${color} !important;-webkit-text-fill-color:${color} !important;mso-style-textfill-fill-color:${color};mso-line-height-rule:exactly;`;
 }
 
@@ -81,9 +77,15 @@ function fontColor(color: string, value: string): string {
   return `<font color="${color}" style="color:${color} !important;-webkit-text-fill-color:${color} !important;text-decoration:none !important;">${value}</font>`;
 }
 
+// ────────────────────────────────────────────────────────────────
+// UI Primitives
+// ────────────────────────────────────────────────────────────────
+
 function pasteButton(
   href: string | undefined,
   text: string,
+  accentColor: string,
+  buttonTextColor: string,
   fontFamily: string,
   minWidth = 132,
   align: 'left' | 'center' = 'left'
@@ -93,30 +95,33 @@ function pasteButton(
 
   return `<table role="presentation" border="0" cellpadding="0" cellspacing="0" align="${align}" style="border-collapse:collapse;mso-table-lspace:0pt;mso-table-rspace:0pt;">
   <tr>
-    <td align="center" valign="middle" bgcolor="${BRAND.accent}" style="${bgStyle(BRAND.accent)}border-radius:4px;padding:0;">
-      <a href="${url}" target="_blank" style="display:block;min-width:${minWidth}px;padding:11px 18px;font-family:${fontFamily};font-size:13px;line-height:16px;mso-line-height-rule:exactly;font-weight:bold;color:${BRAND.text} !important;-webkit-text-fill-color:${BRAND.text} !important;text-decoration:none !important;text-decoration-line:none !important;-webkit-text-decoration-line:none !important;border:0 !important;outline:none !important;border-bottom:none !important;">
-        <span style="display:inline-block;font-family:${fontFamily};font-size:13px;line-height:16px;mso-line-height-rule:exactly;font-weight:bold;color:${BRAND.text} !important;-webkit-text-fill-color:${BRAND.text} !important;text-decoration:none !important;text-decoration-line:none !important;-webkit-text-decoration-line:none !important;border-bottom:none !important;">${label}</span>
+    <td align="center" valign="middle" bgcolor="${accentColor}" style="${bgStyle(accentColor)}border-radius:4px;padding:0;">
+      <a href="${url}" target="_blank" style="display:block;min-width:${minWidth}px;padding:11px 18px;font-family:${fontFamily};font-size:13px;line-height:16px;mso-line-height-rule:exactly;font-weight:bold;color:${buttonTextColor} !important;-webkit-text-fill-color:${buttonTextColor} !important;text-decoration:none !important;text-decoration-line:none !important;-webkit-text-decoration-line:none !important;border:0 !important;outline:none !important;border-bottom:none !important;">
+        <span style="display:inline-block;font-family:${fontFamily};font-size:13px;line-height:16px;mso-line-height-rule:exactly;font-weight:bold;color:${buttonTextColor} !important;-webkit-text-fill-color:${buttonTextColor} !important;text-decoration:none !important;">${label}</span>
       </a>
     </td>
   </tr>
 </table>`;
 }
+
 function dualButtons(
   plHref: string | undefined,
   enHref: string | undefined,
+  accentColor: string,
+  buttonTextColor: string,
   fontFamily: string
 ): string {
   if (!isUsableUrl(enHref)) {
-    return pasteButton(plHref, 'Czytaj dalej', fontFamily, 132);
+    return pasteButton(plHref, 'Czytaj dalej', accentColor, buttonTextColor, fontFamily, 132);
   }
 
   return `<table role="presentation" border="0" cellpadding="0" cellspacing="0" style="border-collapse:collapse;mso-table-lspace:0pt;mso-table-rspace:0pt;">
   <tr>
     <td align="left" valign="top" style="padding:0 8px 0 0;">
-      ${pasteButton(plHref, 'Czytaj dalej', fontFamily, 126)}
+      ${pasteButton(plHref, 'Czytaj dalej', accentColor, buttonTextColor, fontFamily, 126)}
     </td>
     <td align="left" valign="top" style="padding:0;">
-      ${pasteButton(enHref, 'Read more', fontFamily, 126)}
+      ${pasteButton(enHref, 'Read more', accentColor, buttonTextColor, fontFamily, 126)}
     </td>
   </tr>
 </table>`;
@@ -126,6 +131,7 @@ function heading(
   plTitle: string | undefined,
   enTitle: string | undefined,
   fontFamily: string,
+  textColor: string,
   tag: 'h2' | 'h3',
   plSize: number,
   plLine: number,
@@ -137,10 +143,10 @@ function heading(
   const cleanEn = (enTitle || '').trim();
   const cleanPl = `${prefix}${plTitle || ''}`;
 
-  return `<div role="heading" aria-level="${tag === 'h2' ? 2 : 3}" style="margin:0;padding:0 0 ${cleanEn ? 4 : bottom}px 0;font-family:${fontFamily};font-size:${plSize}px;line-height:${plLine}px;mso-line-height-rule:exactly;font-weight:bold;${textStyle(BRAND.text)}">
+  return `<div role="heading" aria-level="${tag === 'h2' ? 2 : 3}" style="margin:0;padding:0 0 ${cleanEn ? 4 : bottom}px 0;font-family:${fontFamily};font-size:${plSize}px;line-height:${plLine}px;mso-line-height-rule:exactly;font-weight:bold;${textStyle(textColor)}">
     ${esc(cleanPl)}
   </div>${cleanEn ? `
-  <div style="margin:0;padding:0 0 ${bottom}px 0;font-family:${fontFamily};font-size:${enSize}px;line-height:${enLine}px;mso-line-height-rule:exactly;font-weight:bold;${textStyle(BRAND.text)}">
+  <div style="margin:0;padding:0 0 ${bottom}px 0;font-family:${fontFamily};font-size:${enSize}px;line-height:${enLine}px;mso-line-height-rule:exactly;font-weight:bold;${textStyle(textColor)}">
     ${esc(cleanEn)}
   </div>` : ''}`;
 }
@@ -149,14 +155,15 @@ function imageBlock(
   src: string | undefined,
   alt: string | undefined,
   width: number,
+  bgColor: string,
   heightFallback = 150
 ): string {
   const safeSrc = imageSource(src);
 
   if (!safeSrc) {
-    return `<table role="presentation" border="0" cellpadding="0" cellspacing="0" width="${width}" bgcolor="${BRAND.imageBg}" style="width:${width}px;border-collapse:collapse;${bgStyle(BRAND.imageBg)}">
+    return `<table role="presentation" border="0" cellpadding="0" cellspacing="0" width="${width}" bgcolor="${bgColor}" style="width:${width}px;border-collapse:collapse;${bgStyle(bgColor)}">
   <tr>
-    <td align="center" valign="middle" height="${heightFallback}" style="height:${heightFallback}px;padding:12px;font-family:Arial, sans-serif;font-size:12px;line-height:18px;${textStyle('#64748b')}${bgStyle(BRAND.imageBg)}border:1px solid #d9e2ec;">
+    <td align="center" valign="middle" height="${heightFallback}" style="height:${heightFallback}px;padding:12px;font-family:Arial, sans-serif;font-size:12px;line-height:18px;${textStyle('#64748b')}${bgStyle(bgColor)}border:1px solid #d9e2ec;">
       Obraz niedostępny po wklejeniu. Użyj linku HTTPS albo eksportu .EML.
     </td>
   </tr>
@@ -166,28 +173,38 @@ function imageBlock(
   return `<img src="${esc(safeSrc)}" width="${width}" border="0" alt="${esc(alt)}" style="display:block;width:${width}px;max-width:${width}px;height:auto;border:0;outline:none;text-decoration:none;">`;
 }
 
-function articleRow(article: Article, index: number, fontFamily: string): string {
+// ────────────────────────────────────────────────────────────────
+// Sections
+// ────────────────────────────────────────────────────────────────
+
+function articleRow(article: Article, index: number, state: NewsletterState): string {
+  const ff = state.fontFamily || 'Arial, sans-serif';
+  const tc = state.textColor || '#143e70';
+  const ac = state.accentColor || '#feed01';
+  const btc = state.buttonTextColor || '#143e70';
+  const white = '#ffffff';
+  const imageBg = '#eef2f7';
   const alt = article.title || article.titleEn || `Artykuł ${index + 1}`;
 
-  return `<table role="presentation" border="0" cellpadding="0" cellspacing="0" width="600" align="center" bgcolor="${BRAND.white}" style="width:600px;max-width:600px;border-collapse:collapse;${bgStyle(BRAND.white)}mso-table-lspace:0pt;mso-table-rspace:0pt;">
+  return `<table role="presentation" border="0" cellpadding="0" cellspacing="0" width="600" align="center" bgcolor="${white}" style="width:600px;max-width:600px;border-collapse:collapse;${bgStyle(white)}mso-table-lspace:0pt;mso-table-rspace:0pt;">
   <tr>
-    <td style="padding:0 20px;${bgStyle(BRAND.white)}">
-      <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="560" align="center" bgcolor="${BRAND.white}" style="width:560px;border-collapse:collapse;${bgStyle(BRAND.white)}border-top:1px solid ${BRAND.border};mso-table-lspace:0pt;mso-table-rspace:0pt;">
+    <td style="padding:0 20px;${bgStyle(white)}">
+      <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="560" align="center" bgcolor="${white}" style="width:560px;border-collapse:collapse;${bgStyle(white)}border-top:1px solid #d7dde8;mso-table-lspace:0pt;mso-table-rspace:0pt;">
         <tr>
-          <td style="height:18px;font-size:1px;line-height:1px;${bgStyle(BRAND.white)}">&nbsp;</td>
+          <td style="height:18px;font-size:1px;line-height:1px;${bgStyle(white)}">&nbsp;</td>
         </tr>
         <tr>
-          <td width="260" valign="top" style="width:260px;padding:0 20px 20px 0;${bgStyle(BRAND.white)}">
+          <td width="260" valign="top" style="width:260px;padding:0 20px 20px 0;${bgStyle(white)}">
             <a href="${esc(safeHref(article.link))}" target="_blank" style="text-decoration:none;border:0;">
-              ${imageBlock(article.image, alt, 260, 160)}
+              ${imageBlock(article.image, alt, 260, imageBg, 160)}
             </a>
           </td>
-          <td width="280" valign="top" style="width:280px;padding:0 0 20px 0;${bgStyle(BRAND.white)}">
-            ${heading(article.title, article.titleEn, fontFamily, 'h3', 17, 22, 14, 19, 10)}
-            <p style="margin:0;padding:0 0 14px 0;font-family:${fontFamily};font-size:14px;line-height:20px;mso-line-height-rule:exactly;${textStyle(BRAND.text)}">
+          <td width="280" valign="top" style="width:280px;padding:0 0 20px 0;${bgStyle(white)}">
+            ${heading(article.title, article.titleEn, ff, tc, 'h3', 17, 22, 14, 19, 10)}
+            <p style="margin:0;padding:0 0 14px 0;font-family:${ff};font-size:14px;line-height:20px;mso-line-height-rule:exactly;${textStyle(tc)}">
               ${esc(article.description)}
             </p>
-            ${dualButtons(article.link, article.linkEn, fontFamily)}
+            ${dualButtons(article.link, article.linkEn, ac, btc, ff)}
           </td>
         </tr>
       </table>
@@ -195,6 +212,10 @@ function articleRow(article: Article, index: number, fontFamily: string): string
   </tr>
 </table>`;
 }
+
+// ────────────────────────────────────────────────────────────────
+// Public exports
+// ────────────────────────────────────────────────────────────────
 
 export function getNewOutlookPasteWarnings(state: NewsletterState): string[] {
   const imageSources = [
@@ -225,67 +246,81 @@ export function getNewOutlookPasteWarnings(state: NewsletterState): string[] {
 }
 
 export function generateNewOutlookPasteHTML(state: NewsletterState): string {
-  const ff = state.fontFamily || "'trebuchet ms', tahoma, sans-serif";
+  // Kolory ze stanu — nie hardkodowane stałe
+  const ff = state.fontFamily || 'Arial, sans-serif';
+  const pc = state.primaryColor || '#143e70';
+  const ac = state.accentColor || '#feed01';
+  const btc = state.buttonTextColor || '#143e70';
+  const tc = state.textColor || '#143e70';
+  const bg = state.bgColor || '#f3f5f8';
+  const white = '#ffffff';
+  const imageBg = '#eef2f7';
 
-  const viewOnline = state.showViewOnline ? `<table role="presentation" border="0" cellpadding="0" cellspacing="0" width="600" align="center" bgcolor="${BRAND.pageBg}" style="width:600px;max-width:600px;border-collapse:collapse;${bgStyle(BRAND.pageBg)}mso-table-lspace:0pt;mso-table-rspace:0pt;">
+  // ── View Online ────────────────────────────────────────────────
+  const viewOnline = state.showViewOnline
+    ? `<table role="presentation" border="0" cellpadding="0" cellspacing="0" width="600" align="center" bgcolor="${bg}" style="width:600px;max-width:600px;border-collapse:collapse;${bgStyle(bg)}mso-table-lspace:0pt;mso-table-rspace:0pt;">
   <tr>
-    <td align="center" style="padding:12px 20px;font-family:${ff};font-size:12px;line-height:16px;mso-line-height-rule:exactly;${textStyle(BRAND.muted)}${bgStyle(BRAND.pageBg)}">
-      <a href="#" style="${textStyle(BRAND.muted)}text-decoration:underline;">Wyświetl online</a>
+    <td align="center" style="padding:12px 20px;font-family:${ff};font-size:12px;line-height:16px;mso-line-height-rule:exactly;${textStyle('#9aa6b2')}${bgStyle(bg)}">
+      <a href="${esc(safeHref(state.viewOnlineUrl || '#'))}" style="${textStyle('#9aa6b2')}text-decoration:none !important;">Wyświetl online</a>
     </td>
   </tr>
 </table>` : '';
 
-  const hero = `<table role="presentation" border="0" cellpadding="0" cellspacing="0" width="600" align="center" bgcolor="${BRAND.white}" style="width:600px;max-width:600px;border-collapse:collapse;${bgStyle(BRAND.white)}mso-table-lspace:0pt;mso-table-rspace:0pt;">
+  // ── Hero ───────────────────────────────────────────────────────
+  const hero = `<table role="presentation" border="0" cellpadding="0" cellspacing="0" width="600" align="center" bgcolor="${white}" style="width:600px;max-width:600px;border-collapse:collapse;${bgStyle(white)}mso-table-lspace:0pt;mso-table-rspace:0pt;">
   <tr>
-    <td align="center" style="padding:22px 20px 0 20px;${bgStyle(BRAND.white)}">
-      <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="560" align="center" bgcolor="${BRAND.white}" style="width:560px;max-width:560px;border-collapse:collapse;${bgStyle(BRAND.white)}mso-table-lspace:0pt;mso-table-rspace:0pt;">
+    <td align="center" style="padding:22px 20px 0 20px;${bgStyle(white)}">
+      <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="560" align="center" bgcolor="${white}" style="width:560px;max-width:560px;border-collapse:collapse;${bgStyle(white)}mso-table-lspace:0pt;mso-table-rspace:0pt;">
         <tr>
-          <td bgcolor="${BRAND.primary}" style="${bgStyle(BRAND.primary)}padding:0;">
-            <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="560" align="center" bgcolor="${BRAND.primary}" style="width:560px;max-width:560px;border-collapse:collapse;${bgStyle(BRAND.primary)}mso-table-lspace:0pt;mso-table-rspace:0pt;">
+          <td bgcolor="${pc}" style="${bgStyle(pc)}padding:0;">
+            <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="560" align="center" bgcolor="${pc}" style="width:560px;max-width:560px;border-collapse:collapse;${bgStyle(pc)}mso-table-lspace:0pt;mso-table-rspace:0pt;">
               <tr>
-                <td width="390" valign="middle" bgcolor="${BRAND.primary}" style="width:390px;padding:22px 15px 22px 24px;font-family:${ff};font-size:22px;line-height:28px;mso-line-height-rule:exactly;font-weight:bold;color:#ffffff !important;-webkit-text-fill-color:#ffffff !important;${bgStyle(BRAND.primary)}">
-                  ${fontColor(BRAND.white, `<b style="color:#ffffff !important;-webkit-text-fill-color:#ffffff !important;">${esc(state.issueNumber)}</b>`)}
+                <td width="390" valign="middle" bgcolor="${pc}" style="width:390px;padding:22px 15px 22px 24px;font-family:${ff};font-size:22px;line-height:28px;mso-line-height-rule:exactly;font-weight:bold;${strictTextStyle(white)}${bgStyle(pc)}">
+                  ${fontColor(white, `<b style="color:${white} !important;-webkit-text-fill-color:${white} !important;">${esc(state.issueNumber)}</b>`)}
                 </td>
-                <td width="170" align="right" valign="middle" style="width:170px;padding:22px 24px 22px 15px;${bgStyle(BRAND.primary)}">
-                  ${imageBlock(state.logoUrl, 'PORR', 80, 40)}
+                <td width="170" align="right" valign="middle" style="width:170px;padding:22px 24px 22px 15px;${bgStyle(pc)}">
+                  ${imageBlock(state.logoUrl, 'PORR', 80, pc, 40)}
                 </td>
               </tr>
             </table>
           </td>
         </tr>
         <tr>
-          <td style="padding:0;font-size:0;line-height:0;${bgStyle(BRAND.white)}">
-            ${imageBlock(state.mainImage, state.mainTitle, 560, 280)}
+          <td style="padding:0;font-size:0;line-height:0;${bgStyle(white)}">
+            ${imageBlock(state.mainImage, state.mainTitle, 560, imageBg, 280)}
           </td>
         </tr>
       </table>
     </td>
   </tr>
   <tr>
-    <td style="padding:24px 40px 8px 40px;${bgStyle(BRAND.white)}">
-      ${heading(state.mainTitle, state.mainTitleEn, ff, 'h2', 21, 27, 16, 22, 15)}
-      <p style="margin:0;padding:0;font-family:${ff};font-size:14px;line-height:22px;mso-line-height-rule:exactly;${textStyle(BRAND.text)}">
+    <td style="padding:24px 40px 8px 40px;${bgStyle(white)}">
+      ${heading(state.mainTitle, state.mainTitleEn, ff, tc, 'h2', 21, 27, 16, 22, 15)}
+      <p style="margin:0;padding:0;font-family:${ff};font-size:14px;line-height:22px;mso-line-height-rule:exactly;${textStyle(tc)}">
         ${esc(state.mainDescription)}
       </p>
     </td>
   </tr>
   <tr>
-    <td style="padding:10px 40px 28px 40px;${bgStyle(BRAND.white)}">
-      ${dualButtons(state.mainLink, state.mainLinkEn, ff)}
+    <td style="padding:10px 40px 28px 40px;${bgStyle(white)}">
+      ${dualButtons(state.mainLink, state.mainLinkEn, ac, btc, ff)}
     </td>
   </tr>
 </table>`;
 
-  const articles = state.articles.map((article, index) => articleRow(article, index, ff)).join('');
+  // ── Articles ───────────────────────────────────────────────────
+  const articles = state.articles.map((article, index) => articleRow(article, index, state)).join('');
 
-  const video = state.showVideo ? `<table role="presentation" border="0" cellpadding="0" cellspacing="0" width="600" align="center" bgcolor="${BRAND.white}" style="width:600px;max-width:600px;border-collapse:collapse;${bgStyle(BRAND.white)}mso-table-lspace:0pt;mso-table-rspace:0pt;">
+  // ── Video ──────────────────────────────────────────────────────
+  const video = state.showVideo
+    ? `<table role="presentation" border="0" cellpadding="0" cellspacing="0" width="600" align="center" bgcolor="${white}" style="width:600px;max-width:600px;border-collapse:collapse;${bgStyle(white)}mso-table-lspace:0pt;mso-table-rspace:0pt;">
   <tr>
-    <td style="padding:14px 20px 10px 20px;${bgStyle(BRAND.white)}">
-      <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="560" align="center" bgcolor="${BRAND.white}" style="width:560px;border-collapse:collapse;${bgStyle(BRAND.white)}border-top:2px solid ${BRAND.accent};mso-table-lspace:0pt;mso-table-rspace:0pt;">
+    <td style="padding:14px 20px 10px 20px;${bgStyle(white)}">
+      <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="560" align="center" bgcolor="${white}" style="width:560px;border-collapse:collapse;${bgStyle(white)}border-top:2px solid ${ac};mso-table-lspace:0pt;mso-table-rspace:0pt;">
         <tr>
-          <td style="padding:18px 0 0 0;${bgStyle(BRAND.white)}">
+          <td style="padding:18px 0 0 0;${bgStyle(white)}">
             <a href="${esc(safeHref(state.videoLink))}" target="_blank" style="text-decoration:none;border:0;">
-              ${imageBlock(state.videoThumbnail, state.videoTitle, 560, 260)}
+              ${imageBlock(state.videoThumbnail, state.videoTitle, 560, imageBg, 260)}
             </a>
           </td>
         </tr>
@@ -293,73 +328,113 @@ export function generateNewOutlookPasteHTML(state: NewsletterState): string {
     </td>
   </tr>
   <tr>
-    <td style="padding:14px 40px 30px 40px;${bgStyle(BRAND.white)}">
-      ${heading(state.videoTitle, state.videoTitleEn, ff, 'h3', 18, 24, 15, 21, 10, '🎬 ')}
-      <p style="margin:0;padding:0 0 15px 0;font-family:${ff};font-size:14px;line-height:20px;mso-line-height-rule:exactly;${textStyle(BRAND.text)}">
+    <td style="padding:14px 40px 30px 40px;${bgStyle(white)}">
+      ${heading(state.videoTitle, state.videoTitleEn, ff, tc, 'h3', 18, 24, 15, 21, 10, '🎬 ')}
+      <p style="margin:0;padding:0 0 15px 0;font-family:${ff};font-size:14px;line-height:20px;mso-line-height-rule:exactly;${textStyle(tc)}">
         ${esc(state.videoDescription)}
       </p>
-      ${dualButtons(state.videoReadMore || state.videoLink, state.videoReadMoreEn, ff)}
+      ${dualButtons(state.videoReadMore || state.videoLink, state.videoReadMoreEn, ac, btc, ff)}
     </td>
   </tr>
 </table>` : '';
 
-  const feedback = state.showFeedback ? `<table role="presentation" border="0" cellpadding="0" cellspacing="0" width="600" align="center" bgcolor="${BRAND.primary}" style="width:600px;max-width:600px;border-collapse:collapse;${bgStyle(BRAND.primary)}mso-table-lspace:0pt;mso-table-rspace:0pt;">
+  // ── Feedback (emoji) ───────────────────────────────────────────
+  // Sekcja z opcjami oceny newslettera — wizualnie taka sama jak w emailGenerator.ts.
+  const feedbackBg = state.feedbackBgColor || '#f0f4f8';
+  const feedback = state.showFeedback
+    ? `<table role="presentation" border="0" cellpadding="0" cellspacing="0" width="600" align="center" bgcolor="${feedbackBg}" style="width:600px;max-width:600px;border-collapse:collapse;${bgStyle(feedbackBg)}mso-table-lspace:0pt;mso-table-rspace:0pt;">
   <tr>
-    <td bgcolor="${BRAND.primary}" style="padding:28px 40px 12px 40px;${bgStyle(BRAND.primary)}">
-      <div style="margin:0;padding:0;font-family:${ff};font-size:20px;line-height:26px;mso-line-height-rule:exactly;font-weight:bold;color:#ffffff !important;-webkit-text-fill-color:#ffffff !important;">${fontColor(BRAND.white, `<b>${esc(state.feedbackTitle || state.footerTitle || 'Cieszymy się, że nas czytasz!')}</b>`)}</div>
+    <td align="center" style="padding:35px 20px 10px 20px;${bgStyle(feedbackBg)}">
+      <div style="margin:0;padding:0;font-family:${ff};font-size:22px;font-weight:bold;line-height:28px;mso-line-height-rule:exactly;${textStyle(pc)}">
+        ${esc(state.feedbackTitle)}
+      </div>
     </td>
   </tr>
   <tr>
-    <td bgcolor="${BRAND.primary}" style="padding:12px 40px 24px 40px;${bgStyle(BRAND.primary)}">
-      <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="520" align="center" bgcolor="${BRAND.primary}" style="width:520px;border-collapse:collapse;${bgStyle(BRAND.primary)}mso-table-lspace:0pt;mso-table-rspace:0pt;">
+    <td align="center" style="padding:5px 20px 25px 20px;${bgStyle(feedbackBg)}">
+      <p style="margin:0;padding:0;font-family:${ff};font-size:14px;line-height:20px;mso-line-height-rule:exactly;${textStyle(tc)}">
+        ${esc(state.feedbackSubtitle)}
+      </p>
+    </td>
+  </tr>
+  <tr>
+    <td align="center" style="padding:0 10px 25px 10px;${bgStyle(feedbackBg)}">
+      <table role="presentation" border="0" cellpadding="0" cellspacing="0">
         <tr>
-          <td width="250" valign="top" bgcolor="${BRAND.primary}" class="porr-force-white" style="width:250px;padding:0 24px 0 0;font-family:${ff};font-size:15px;line-height:23px;mso-line-height-rule:exactly;font-weight:bold;${strictTextStyle(BRAND.white)}${bgStyle(BRAND.primary)}">
-            <div style="margin:0;font-family:${ff};font-size:15px;line-height:23px;mso-line-height-rule:exactly;font-weight:bold;color:#ffffff !important;-webkit-text-fill-color:#ffffff !important;">${fontColor(BRAND.white, esc(state.footerLeft).replace(/\n/g, '<br>'))}</div>
+          ${state.feedbackOptions.map((o) => `
+          <td align="center" style="padding:10px 12px;">
+            <a href="${esc(safeHref(o.link))}" style="text-decoration:none;">
+              <table role="presentation" border="0" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td align="center" style="font-size:32px;line-height:36px;padding-bottom:8px;">
+                    ${o.emoji}
+                  </td>
+                </tr>
+                <tr>
+                  <td align="center" style="font-family:${ff};font-size:12px;line-height:16px;${textStyle(tc)}">
+                    ${esc(o.label)}
+                  </td>
+                </tr>
+              </table>
+            </a>
+          </td>`).join('')}
+        </tr>
+      </table>
+    </td>
+  </tr>
+  ${state.feedbackSurveyLink
+    ? `<tr>
+      <td align="center" style="padding:5px 20px 20px 20px;${bgStyle(feedbackBg)}">
+        <a href="${esc(state.feedbackSurveyLink)}" style="font-family:${ff};font-size:14px;${textStyle(pc)}text-decoration:underline;">
+          ${esc(state.feedbackSurveyText)}
+        </a>
+      </td>
+    </tr>` : ''}
+  <tr>
+    <td style="height:35px;font-size:1px;line-height:1px;${bgStyle(feedbackBg)}">&nbsp;</td>
+  </tr>
+</table>` : '';
+
+  // ── Footer ─────────────────────────────────────────────────────
+  // Stopka jest ZAWSZE widoczna (niezależnie od showFeedback).
+  const footer = `<table role="presentation" border="0" cellpadding="0" cellspacing="0" width="600" align="center" bgcolor="${pc}" style="width:600px;max-width:600px;border-collapse:collapse;${bgStyle(pc)}mso-table-lspace:0pt;mso-table-rspace:0pt;">
+  <tr>
+    <td bgcolor="${pc}" style="padding:28px 40px 12px 40px;${bgStyle(pc)}">
+      <div style="margin:0;padding:0;font-family:${ff};font-size:20px;line-height:26px;mso-line-height-rule:exactly;font-weight:bold;${strictTextStyle(white)}">
+        ${fontColor(white, `<b>${esc(state.footerTitle)}</b>`)}
+      </div>
+    </td>
+  </tr>
+  <tr>
+    <td bgcolor="${pc}" style="padding:12px 40px 24px 40px;${bgStyle(pc)}">
+      <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="520" align="center" bgcolor="${pc}" style="width:520px;border-collapse:collapse;${bgStyle(pc)}mso-table-lspace:0pt;mso-table-rspace:0pt;">
+        <tr>
+          <td width="250" valign="top" bgcolor="${pc}" style="width:250px;padding:0 24px 0 0;font-family:${ff};font-size:15px;line-height:23px;mso-line-height-rule:exactly;font-weight:bold;${strictTextStyle(white)}${bgStyle(pc)}">
+            <div style="margin:0;font-family:${ff};font-size:15px;line-height:23px;mso-line-height-rule:exactly;font-weight:bold;${strictTextStyle(white)}">
+              ${fontColor(white, esc(state.footerLeft).replace(/\n/g, '<br>'))}
+            </div>
           </td>
-          <td width="250" valign="top" bgcolor="${BRAND.primary}" class="porr-force-white" style="width:250px;padding:0;font-family:${ff};font-size:15px;line-height:23px;mso-line-height-rule:exactly;font-weight:bold;${strictTextStyle(BRAND.white)}${bgStyle(BRAND.primary)}">
-            <div style="margin:0;font-family:${ff};font-size:15px;line-height:23px;mso-line-height-rule:exactly;font-weight:bold;color:#ffffff !important;-webkit-text-fill-color:#ffffff !important;">${fontColor(BRAND.white, esc(state.footerRight).replace(/\n/g, '<br>'))}</div>
+          <td width="250" valign="top" bgcolor="${pc}" style="width:250px;padding:0;font-family:${ff};font-size:15px;line-height:23px;mso-line-height-rule:exactly;font-weight:bold;${strictTextStyle(white)}${bgStyle(pc)}">
+            <div style="margin:0;font-family:${ff};font-size:15px;line-height:23px;mso-line-height-rule:exactly;font-weight:bold;${strictTextStyle(white)}">
+              ${fontColor(white, esc(state.footerRight).replace(/\n/g, '<br>'))}
+            </div>
           </td>
         </tr>
       </table>
     </td>
   </tr>
   <tr>
-    <td align="center" bgcolor="${BRAND.primary}" style="padding:0 40px 34px 40px;${bgStyle(BRAND.primary)}">
-      ${pasteButton(normalizeFooterButtonHref(state.footerButtonUrl, state.contactEmail), footerButtonText(state.footerButtonText), ff, 190, 'center')}
+    <td align="center" bgcolor="${pc}" style="padding:0 40px 34px 40px;${bgStyle(pc)}">
+      ${pasteButton(normalizeFooterButtonHref(state.footerButtonUrl, state.contactEmail), footerButtonText(state.footerButtonText), ac, btc, ff, 190, 'center')}
     </td>
   </tr>
-</table>` : '';
+</table>`;
 
-  const fallbackFooter = !state.showFeedback ? `<table role="presentation" border="0" cellpadding="0" cellspacing="0" width="600" align="center" bgcolor="${BRAND.primary}" style="width:600px;max-width:600px;border-collapse:collapse;${bgStyle(BRAND.primary)}mso-table-lspace:0pt;mso-table-rspace:0pt;">
+  // ── Social ─────────────────────────────────────────────────────
+  const social = state.showSocial
+    ? `<table role="presentation" border="0" cellpadding="0" cellspacing="0" width="600" align="center" bgcolor="${bg}" style="width:600px;max-width:600px;border-collapse:collapse;${bgStyle(bg)}mso-table-lspace:0pt;mso-table-rspace:0pt;">
   <tr>
-    <td bgcolor="${BRAND.primary}" style="padding:28px 40px 12px 40px;${bgStyle(BRAND.primary)}">
-      <div style="margin:0;padding:0;font-family:${ff};font-size:20px;line-height:26px;mso-line-height-rule:exactly;font-weight:bold;color:#ffffff !important;-webkit-text-fill-color:#ffffff !important;">${fontColor(BRAND.white, `<b>${esc(state.footerTitle)}</b>`)}</div>
-    </td>
-  </tr>
-  <tr>
-    <td bgcolor="${BRAND.primary}" style="padding:12px 40px 24px 40px;${bgStyle(BRAND.primary)}">
-      <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="520" align="center" bgcolor="${BRAND.primary}" style="width:520px;border-collapse:collapse;${bgStyle(BRAND.primary)}mso-table-lspace:0pt;mso-table-rspace:0pt;">
-        <tr>
-          <td width="250" valign="top" bgcolor="${BRAND.primary}" class="porr-force-white" style="width:250px;padding:0 24px 0 0;font-family:${ff};font-size:15px;line-height:23px;mso-line-height-rule:exactly;font-weight:bold;${strictTextStyle(BRAND.white)}${bgStyle(BRAND.primary)}">
-            <div style="margin:0;font-family:${ff};font-size:15px;line-height:23px;mso-line-height-rule:exactly;font-weight:bold;color:#ffffff !important;-webkit-text-fill-color:#ffffff !important;">${fontColor(BRAND.white, esc(state.footerLeft).replace(/\n/g, '<br>'))}</div>
-          </td>
-          <td width="250" valign="top" bgcolor="${BRAND.primary}" class="porr-force-white" style="width:250px;padding:0;font-family:${ff};font-size:15px;line-height:23px;mso-line-height-rule:exactly;font-weight:bold;${strictTextStyle(BRAND.white)}${bgStyle(BRAND.primary)}">
-            <div style="margin:0;font-family:${ff};font-size:15px;line-height:23px;mso-line-height-rule:exactly;font-weight:bold;color:#ffffff !important;-webkit-text-fill-color:#ffffff !important;">${fontColor(BRAND.white, esc(state.footerRight).replace(/\n/g, '<br>'))}</div>
-          </td>
-        </tr>
-      </table>
-    </td>
-  </tr>
-  <tr>
-    <td align="center" bgcolor="${BRAND.primary}" style="padding:0 40px 34px 40px;${bgStyle(BRAND.primary)}">
-      ${pasteButton(normalizeFooterButtonHref(state.footerButtonUrl, state.contactEmail), footerButtonText(state.footerButtonText), ff, 190, 'center')}
-    </td>
-  </tr>
-</table>` : '';
-
-  const social = state.showSocial ? `<table role="presentation" border="0" cellpadding="0" cellspacing="0" width="600" align="center" bgcolor="${BRAND.pageBg}" style="width:600px;max-width:600px;border-collapse:collapse;${bgStyle(BRAND.pageBg)}mso-table-lspace:0pt;mso-table-rspace:0pt;">
-  <tr>
-    <td align="center" style="padding:24px 0;${bgStyle(BRAND.pageBg)}">
+    <td align="center" style="padding:24px 0;${bgStyle(bg)}">
       <table role="presentation" border="0" cellpadding="0" cellspacing="0" align="center" style="border-collapse:collapse;mso-table-lspace:0pt;mso-table-rspace:0pt;">
         <tr>
           <td style="padding:0 14px;"><a href="${esc(safeHref(state.facebookUrl))}" target="_blank"><img width="34" height="34" border="0" src="https://eyifvsv.stripocdn.email/content/assets/img/social-icons/logo-colored/facebook-logo-colored.png" alt="Facebook" style="display:block;border:0;outline:none;text-decoration:none;"></a></td>
@@ -371,49 +446,44 @@ export function generateNewOutlookPasteHTML(state: NewsletterState): string {
   </tr>
 </table>` : '';
 
-  const legal = `<table role="presentation" border="0" cellpadding="0" cellspacing="0" width="600" align="center" bgcolor="${BRAND.pageBg}" style="width:600px;max-width:600px;border-collapse:collapse;${bgStyle(BRAND.pageBg)}mso-table-lspace:0pt;mso-table-rspace:0pt;">
+  // ── Legal ──────────────────────────────────────────────────────
+  const legal = `<table role="presentation" border="0" cellpadding="0" cellspacing="0" width="600" align="center" bgcolor="${bg}" style="width:600px;max-width:600px;border-collapse:collapse;${bgStyle(bg)}mso-table-lspace:0pt;mso-table-rspace:0pt;">
   <tr>
-    <td align="center" style="padding:6px 20px 28px 20px;font-family:${ff};font-size:11px;line-height:16px;mso-line-height-rule:exactly;${textStyle(BRAND.legal)}${bgStyle(BRAND.pageBg)}">
+    <td align="center" style="padding:6px 20px 28px 20px;font-family:${ff};font-size:11px;line-height:16px;mso-line-height-rule:exactly;${textStyle('#9aa6b2')}${bgStyle(bg)}">
       © ${new Date().getFullYear()} PORR S.A. Wszelkie prawa zastrzeżone.
     </td>
   </tr>
 </table>`;
 
+  // ── Style override ─────────────────────────────────────────────
   const pasteStyle = `<style type="text/css">
     .porr-mail-root a,
     .porr-mail-root a:link,
     .porr-mail-root a:visited,
     .porr-mail-root a:hover,
     .porr-mail-root a span,
-    .porr-mail-root a u,
-    .porr-mail-root .porr-button-link,
-    .porr-mail-root .porr-button-text {
+    .porr-mail-root a u {
       text-decoration: none !important;
       text-decoration-line: none !important;
       -webkit-text-decoration-line: none !important;
       border-bottom: 0 !important;
     }
-    .porr-mail-root .porr-force-white,
-    .porr-mail-root .porr-force-white *,
-    .porr-mail-root .porr-force-white font {
-      color: #ffffff !important;
-      -webkit-text-fill-color: #ffffff !important;
-      text-decoration: none !important;
-    }
   </style>`;
 
-  return `${pasteStyle}<div class="porr-mail-root" style="margin:0;padding:0;background-color:${BRAND.pageBg};"><table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" bgcolor="${BRAND.pageBg}" style="width:100%;border-collapse:collapse;${bgStyle(BRAND.pageBg)}mso-table-lspace:0pt;mso-table-rspace:0pt;">
+  return `${pasteStyle}<div class="porr-mail-root" style="margin:0;padding:0;background-color:${bg};">
+<table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" bgcolor="${bg}" style="width:100%;border-collapse:collapse;${bgStyle(bg)}mso-table-lspace:0pt;mso-table-rspace:0pt;">
   <tr>
-    <td align="center" bgcolor="${BRAND.pageBg}" style="padding:0;${bgStyle(BRAND.pageBg)}">
+    <td align="center" bgcolor="${bg}" style="padding:0;${bgStyle(bg)}">
       ${viewOnline}
       ${hero}
       ${articles}
       ${video}
       ${feedback}
-      ${fallbackFooter}
+      ${footer}
       ${social}
       ${legal}
     </td>
   </tr>
-</table></div>`;
+</table>
+</div>`;
 }

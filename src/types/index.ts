@@ -26,6 +26,8 @@ export interface NewsletterState {
   issueNumber: string;
   preheader: string;
   logoUrl: string;
+  /** URL do hostowanej wersji online newslettera (używany w linku „Wyświetl online") */
+  viewOnlineUrl: string;
 
   // Main article
   /** Polish title for the main article. */

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNewsletterStore } from '@/hooks/useNewsletterStore';
 import { useNotification } from '@/hooks/useNotification';
 import { generateEmailHTML } from '@/utils/emailGenerator';
@@ -42,17 +42,19 @@ export function App() {
   const [showSaveToLibrary, setShowSaveToLibrary] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  const outlookHtml = generateNewOutlookPasteHTML(store.state);
-  const emailHtml = generateEmailHTML(store.state);
+  // Memoizacja obu wariantów HTML — żadne z nich nie jest przeliczane
+  // na nowo przy każdym keystroke, tylko gdy zmienia się stan newslettera.
+  const emailHtml = useMemo(() => generateEmailHTML(store.state), [store.state]);
+  const outlookHtml = useMemo(() => generateNewOutlookPasteHTML(store.state), [store.state]);
 
   const handleTabChange = useCallback((tab: TabId) => {
     setActiveTab(tab);
   }, []);
 
   const handleExportHTML = useCallback(() => {
-  downloadFile(outlookHtml, 'newsletter.html', 'text/html;charset=utf-8', true);
-  notify('✅ HTML pobrany!');
-}, [outlookHtml, notify]);
+    downloadFile(emailHtml, 'newsletter.html', 'text/html;charset=utf-8', true);
+    notify('✅ HTML pobrany!');
+  }, [emailHtml, notify]);
 
   const handleExportEML = useCallback(() => {
     const eml = generateEml(emailHtml, store.state, { draftMode: false });
@@ -89,16 +91,15 @@ export function App() {
 }, [emailHtml, store.state.issueNumber, notify]);
 
   const handleCopyHTML = useCallback(() => {
-    copyPlainHtmlSource(outlookHtml)
+    copyPlainHtmlSource(emailHtml)
       .then(() => notify('📋 Kod HTML skopiowany do schowka!'))
       .catch(() => notify('❌ Nie udało się skopiować HTML. Sprawdź uprawnienia schowka.', 'error'));
-  }, [outlookHtml, notify]);
+  }, [emailHtml, notify]);
 
   const handleCopyForNewOutlook = useCallback(() => {
-    const pasteHtml = generateNewOutlookPasteHTML(store.state);
     const warnings = getNewOutlookPasteWarnings(store.state);
 
-    copyHtmlToClipboard(pasteHtml)
+    copyHtmlToClipboard(outlookHtml)
       .then(() => {
         if (warnings.length > 0) {
           notify(`📋 Skopiowano treść maila. Uwaga: ${warnings[0]}`, 'warning');
@@ -108,21 +109,19 @@ export function App() {
         notify('📋 Skopiowano treść maila. W nowym Outlooku utwórz nową wiadomość i wklej Ctrl+V.', 'info');
       })
       .catch(() => notify('❌ Nie udało się skopiować treści HTML dla Outlooka.', 'error'));
-  }, [store.state, notify]);
+  }, [outlookHtml, store.state, notify]);
 
   const handleCopyAsSignature = useCallback(() => {
-    const pasteHtml = generateNewOutlookPasteHTML(store.state);
-
-    copyHtmlToClipboard(pasteHtml)
+    copyHtmlToClipboard(outlookHtml)
       .then(() => notify('✍️ Skopiowano uproszczoną treść HTML. Wklej w ustawieniach podpisu Outlooka.', 'info'))
       .catch(() => notify('❌ Nie udało się skopiować podpisu.', 'error'));
-  }, [store.state, notify]);
+  }, [outlookHtml, notify]);
 
   const handleOpenInNewTab = useCallback(() => {
-    const url = URL.createObjectURL(new Blob([outlookHtml], { type: 'text/html;charset=utf-8' }));
+    const url = URL.createObjectURL(new Blob([emailHtml], { type: 'text/html;charset=utf-8' }));
     window.open(url, '_blank', 'noopener,noreferrer');
     window.setTimeout(() => URL.revokeObjectURL(url), 10000);
-  }, [outlookHtml]);
+  }, [emailHtml]);
 
   const handleSaveProject = useCallback(() => {
   try {
@@ -329,7 +328,7 @@ export function App() {
         />
 
         <Preview
-          html={outlookHtml}
+          html={emailHtml}
           activeDevice={activeDevice}
           previewWidth={previewWidth}
           onDeviceChange={handleDeviceChange}
@@ -340,7 +339,7 @@ export function App() {
       <Notifications notifications={notifications} onDismiss={dismiss} />
 
       {showHelp && <HelpModal onClose={() => setShowHelp(false)} />}
-      {showCode && <CodeModal html={outlookHtml} onClose={() => setShowCode(false)} onCopy={handleCopyHTML} />}
+      {showCode && <CodeModal html={emailHtml} onClose={() => setShowCode(false)} onCopy={handleCopyHTML} />}
       {showTemplates && <TemplatesModal onClose={() => setShowTemplates(false)} onLoad={handleLoadTemplate} />}
       {showOutlookHelp && <OutlookHelpModal onClose={() => setShowOutlookHelp(false)} />}
       {showLibrary && (

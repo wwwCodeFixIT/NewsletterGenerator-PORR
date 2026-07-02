@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { DeviceType } from '@/types';
 
 interface PreviewProps {
@@ -18,25 +18,40 @@ const devices: { id: DeviceType; icon: string; label: string; size: string }[] =
 
 export function Preview({ html, activeDevice, previewWidth, onDeviceChange, onWidthChange }: PreviewProps) {
   const iframeRef = useRef<HTMLIFrameElement>(null);
+  const [contentHeight, setContentHeight] = useState(600);
 
   useEffect(() => {
     const iframe = iframeRef.current;
     if (!iframe) return;
     const doc = iframe.contentDocument || iframe.contentWindow?.document;
     if (!doc) return;
+
     doc.open();
     doc.write(html);
     doc.close();
+
+    // Pierwsze pomiarowanie — od razu po wpisaniu HTML
+    const measureNow = () => {
+      const h = doc.documentElement?.scrollHeight || doc.body?.scrollHeight || 0;
+      if (h > 100) setContentHeight(h);
+    };
+    measureNow();
+
+    // Drugie pomiarowanie po 400ms — obrazy zewnętrzne mogą się jeszcze ładować
+    // i zmieniać wysokość layoutu (szczególnie bez wymiarów na img)
+    const t = window.setTimeout(measureNow, 400);
+    return () => window.clearTimeout(t);
   }, [html]);
 
   const deviceType = activeDevice.startsWith('mobile') ? 'mobile' : activeDevice === 'tablet' ? 'tablet' : 'desktop';
   const viewLabel = previewWidth <= 480 ? 'Mobile' : previewWidth <= 768 ? 'Tablet' : 'Desktop';
+  // Clamp: minimum 300px, maximum 5000px (zapobiega dziwnemu skakaniu przy pierwszym renderze)
+  const iframeHeight = Math.min(Math.max(contentHeight, 300), 5000);
 
   return (
     <div className="flex-1 bg-[#2a2a4a] flex flex-col min-h-0 min-w-0">
       {/* Controls bar */}
       <div className="flex-shrink-0 px-3 pt-2 pb-1.5 border-b border-white/5 space-y-1.5">
-        {/* Top row: title + devices */}
         <div className="flex items-center gap-2 flex-wrap">
           <h2 className="text-xs font-semibold text-white/80 flex items-center gap-1.5 whitespace-nowrap">
             👁️ Podgląd
@@ -60,7 +75,6 @@ export function Preview({ html, activeDevice, previewWidth, onDeviceChange, onWi
             ))}
           </div>
 
-          {/* Width control */}
           <div className="flex items-center gap-1.5 bg-[#1a1a2e] px-2 py-1 rounded-lg">
             <input
               type="range"
@@ -86,6 +100,10 @@ export function Preview({ html, activeDevice, previewWidth, onDeviceChange, onWi
           }`}>
             {viewLabel}
           </span>
+
+          <span className="text-[9px] text-gray-600 ml-auto hidden md:block">
+            Wysokość: {iframeHeight}px
+          </span>
         </div>
       </div>
 
@@ -101,26 +119,23 @@ export function Preview({ html, activeDevice, previewWidth, onDeviceChange, onWi
           }`}
           style={{ maxWidth: '100%' }}
         >
-          {/* Mobile notch */}
           {deviceType === 'mobile' && (
             <div className="absolute top-3.5 left-1/2 -translate-x-1/2 w-20 h-5 bg-[#0f0f1a] rounded-xl" />
           )}
 
-          {/* Screen */}
           <div className="bg-white rounded-sm overflow-hidden">
             <iframe
               ref={iframeRef}
               className="block bg-white border-none"
               style={{
                 width: previewWidth + 'px',
-                height: Math.max(600, previewWidth * 1.3) + 'px',
+                height: iframeHeight + 'px',
                 maxWidth: '100%',
               }}
               title="Podgląd newslettera"
             />
           </div>
 
-          {/* Mobile home button */}
           {deviceType === 'mobile' && (
             <div className="absolute bottom-2.5 left-1/2 -translate-x-1/2 w-10 h-1 bg-gray-600 rounded-full" />
           )}

@@ -48,22 +48,36 @@ function vmlButton(
   textColor: string,
   fontFamily: string,
   width: number = 150,
-  _height: number = 40
+  height: number = 40
 ): string {
   const url = safeHref(href);
-  const safeWidth = Math.max(110, width);
+  const w = Math.max(110, width);
+  const pad = Math.round((height - 16) / 2);
+  const escaped = esc(text);
 
-  // Stabilny table-button bez wymuszonej wysokości/line-height równej wysokości.
-  // Outlook potrafił robić z przycisków zbyt wysokie bloki przy wklejaniu/forwardowaniu.
-  return `<table role="presentation" border="0" cellpadding="0" cellspacing="0" width="${safeWidth}" style="width:${safeWidth}px;max-width:${safeWidth}px;border-collapse:collapse;mso-table-lspace:0pt;mso-table-rspace:0pt;display:inline-table;">
-  <tr>
-    <td align="center" valign="middle" bgcolor="${bgColor}" style="background-color:${bgColor};border-radius:4px;padding:0;mso-line-height-rule:exactly;">
-      <a href="${esc(url)}" target="_blank" style="display:block;padding:10px 14px;font-family:${fontFamily};font-size:13px;font-weight:bold;line-height:16px;color:${textColor} !important;-webkit-text-fill-color:${textColor} !important;text-decoration:none !important;text-decoration-line:none !important;border-bottom:none;text-align:center;mso-line-height-rule:exactly;">
-        <span style="color:${textColor} !important;-webkit-text-fill-color:${textColor} !important;text-decoration:none !important;text-decoration-line:none !important;border-bottom:none;">${esc(text)}</span>
-      </a>
-    </td>
-  </tr>
-</table>`;
+  // Stary Outlook (2007-2019 / Word engine) ignoruje CSS na <a> i zawsze dodaje
+  // underline do linków. Jedyna skuteczna metoda to <v:roundrect> — renderuje
+  // przycisk jako kształt VML (nie jako hiperłącze tekstowe), więc underline
+  // nie może się pojawić. Dla pozostałych klientów (nowy Outlook, web, mobile)
+  // używamy table+<a> z agresywnym text-decoration:none !important.
+  return (
+    `<!--[if mso]>` +
+    `<v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word"` +
+    ` href="${esc(url)}"` +
+    ` style="height:${height}px;v-text-anchor:middle;width:${w}px;"` +
+    ` arcsize="8%" stroke="f" fillcolor="${bgColor}">` +
+    `<w:anchorlock/>` +
+    `<center style="color:${textColor};font-family:${fontFamily};font-size:13px;font-weight:bold;text-decoration:none;">${escaped}</center>` +
+    `</v:roundrect>` +
+    `<![endif]-->` +
+    `<!--[if !mso]><!--><table role="presentation" border="0" cellpadding="0" cellspacing="0" style="border-collapse:collapse;display:inline-table;">` +
+    `<tr><td align="center" valign="middle" bgcolor="${bgColor}" style="background-color:${bgColor};border-radius:4px;padding:0;">` +
+    `<a href="${esc(url)}" target="_blank" style="display:block;padding:${pad}px 14px;font-family:${fontFamily};font-size:13px;font-weight:bold;` +
+    `line-height:16px;color:${textColor} !important;-webkit-text-fill-color:${textColor} !important;` +
+    `text-decoration:none !important;text-decoration-line:none !important;-webkit-text-decoration-line:none !important;text-align:center;">` +
+    `<span style="color:${textColor} !important;text-decoration:none !important;text-decoration-line:none !important;">${escaped}</span>` +
+    `</a></td></tr></table><!--<![endif]-->`
+  );
 }
 
 function hasUsableHref(href?: string): boolean {
@@ -235,7 +249,7 @@ export function generateEmailHTML(s: NewsletterState): string {
     ? `<table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="min-width:100%;">
         <tr>
           <td align="center" style="padding:15px 20px;">
-            <a href="#" style="font-family:${ff};font-size:12px;line-height:16px;color:#999999;text-decoration:underline;">Wyświetl online</a>
+            <a href="${esc(safeHref(s.viewOnlineUrl || '#'))}" style="font-family:${ff};font-size:12px;line-height:16px;color:#999999;text-decoration:none !important;">Wyświetl online</a>
           </td>
         </tr>
       </table>`
@@ -473,8 +487,7 @@ export function generateEmailHTML(s: NewsletterState): string {
   <tr>
     <td align="center" style="padding:15px 20px 25px 20px;">
       <p style="margin:0;padding:0;font-size:11px;color:#bbbbbb;font-family:${ff};line-height:16px;mso-line-height-rule:exactly;">
-        No longer want these emails? <a href="#" style="color:#bbbbbb;text-decoration:underline;">Unsubscribe</a>
-        <br>© ${new Date().getFullYear()} PORR S.A. Wszelkie prawa zastrzeżone.
+        © ${new Date().getFullYear()} PORR S.A. Wszelkie prawa zastrzeżone.
       </p>
     </td>
   </tr>
@@ -501,7 +514,7 @@ export function generateEmailHTML(s: NewsletterState): string {
 <style type="text/css">
   table {border-collapse:collapse;mso-table-lspace:0pt;mso-table-rspace:0pt;}
   img {border:0;height:auto;line-height:100%;outline:none;text-decoration:none;-ms-interpolation-mode:bicubic;}
-  a {text-decoration:none;}
+  a {text-decoration:none !important;color:inherit;}
 </style>
 <![endif]-->
 <style type="text/css">
@@ -510,7 +523,7 @@ body, #bodyTable { margin:0 !important; padding:0 !important; width:100% !import
 body { background-color:${bg}; -webkit-text-size-adjust:100%; -ms-text-size-adjust:100%; }
 table { border-collapse:collapse; mso-table-lspace:0pt; mso-table-rspace:0pt; }
 img { border:0; height:auto; line-height:100%; outline:none; text-decoration:none; -ms-interpolation-mode:bicubic; }
-a { text-decoration:none; }
+a { text-decoration:none !important; color:inherit; }
 @media only screen and (max-width:620px) {
   table.responsive { width:100% !important; max-width:100% !important; }
   table.stack-col { display:block !important; width:100% !important; max-width:100% !important; }

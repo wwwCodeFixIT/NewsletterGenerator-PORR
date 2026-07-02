@@ -5,6 +5,7 @@ const defaultState: NewsletterState = {
   issueNumber: 'Espinacz nr 4/2026',
   preheader: '',
   logoUrl: 'https://eyifvsv.stripocdn.email/content/guids/CABINET_ca0715bd41167d78d8998eff7cc81b8d6196f4289576108dfc827ce6ec8fc9fa/images/_porr_rgb_screenpng.png',
+  viewOnlineUrl: '',
   mainTitle: 'Wiecha w górę na budynku serwerowni FRA32',
   mainTitleEn: '',
   mainDescription: 'Nasze zespoły PORR Polska i PORR Niemcy pracujące ramię w ramię przy budowie centrum danych FRA32 w podfrankfurckim Raunheim osiągnęły właśnie kolejny kamień milowy!',
@@ -133,6 +134,7 @@ export function useNewsletterStore() {
     merged.videoReadMoreEn = merged.videoReadMoreEn || '';
     merged.footerButtonText = merged.footerButtonText || 'Napisz do nas ✉️';
     merged.footerButtonUrl = merged.footerButtonUrl || `mailto:${merged.contactEmail || 'komunikacja@porr.pl'}`;
+    merged.viewOnlineUrl = merged.viewOnlineUrl || '';
     setState(merged);
   }, []);
 
@@ -168,6 +170,23 @@ export function useNewsletterStore() {
       articles: prev.articles.filter(a => a.id !== id),
       currentArticleId: prev.currentArticleId === id ? null : prev.currentArticleId,
     }));
+  }, []);
+
+  const duplicateArticle = useCallback((id: number) => {
+    setState(prev => {
+      const idx = prev.articles.findIndex(a => a.id === id);
+      if (idx === -1) return prev;
+      const original = prev.articles[idx];
+      const copy = { ...original, id: prev.nextId, title: `${original.title} (kopia)` };
+      const newArticles = [...prev.articles];
+      newArticles.splice(idx + 1, 0, copy);
+      return {
+        ...prev,
+        articles: newArticles,
+        nextId: prev.nextId + 1,
+        currentArticleId: copy.id,
+      };
+    });
   }, []);
 
   const updateArticle = useCallback((id: number, data: Partial<{ title: string; titleEn: string; description: string; image: string; link: string; linkEn: string }>) => {
@@ -246,6 +265,7 @@ export function useNewsletterStore() {
     resetState,
     addArticle,
     removeArticle,
+    duplicateArticle,
     updateArticle,
     moveArticle,
     setFeedbackStyle,
